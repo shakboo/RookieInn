@@ -19,7 +19,8 @@ from Task import views
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^$/', include('django.contrib.auth.urls')),
+    url(r'^auth/', include('django.contrib.auth.urls')),
+    url(r'^register/', views.register, name='register'),
     url(r'^admin/', admin.site.urls),
     url(r'^Task/', include('Task.urls')),
 ]
