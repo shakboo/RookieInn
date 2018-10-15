@@ -1,6 +1,5 @@
 
-*.py
-c
+*.pyc
 *.rar
 *.zip
 *.rar
