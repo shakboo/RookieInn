@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block webname %}
+<h1 class="navbar-brand" style="position:relative;bottom:3px"><a href="{% url 'vote:index' %}" style="text-decoration:none"><font style="color:grey;font-size:180%">投票平台</font></a></h1>
+{% endblock %}
+
+{% block main %}
+<form action="{% url 'vote:detail' question.id %}" method="post">
+    {% csrf_token %}
+    <h3 class="text-center">{{ question.title }}</h3>
+    {% if question.choose == '投票' or question.choose == '公告' %}
+    <table class="table table-striped">
+         <thead>
+            <tr>
+              <th class="text-center">内容</th>
+              <th class="text-center">选择</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for choice in question.choice_set.all %}
+            <tr>
+                <td class="text-center" width="50%">{{ choice.choiceText }}</td>
+                <td class="text-center" width="50%"><label><input type="checkbox" name="choice" value="{{ choice.id }}" id="choice{{ forloop.counter }}"></label></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="text-center"><button type="submit" class="btn btn-default">确认投票</button></div>
+
+    {% elif question.choose == '问答' %}
+        {% for choice in question.choice_set.all %}
+    <div style="margin:0 10% 0 10%">
+        <p>{{ choice.choiceText }}</p>
+        {# 该条隐藏的input是为了给后台定位 #}
+        <input type="text" name="choice" value="{{ choice.id }}" id="choice{{ forloop.counter }}" style="display:none">
+        <textarea name="{{ choice.id }}" placeholder="请输入" class="form-control"></textarea>
+    </div>
+    <br>
+        {% endfor %}
+    <br>
+    <div class="text-center"><button type="submit" class="btn btn-default">确认提交</button></div>
+    {% endif %}
+</form>
+
+{% endblock %}

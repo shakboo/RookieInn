@@ -1,0 +1,77 @@
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    {% block title %}{% endblock title %}
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/static/css/jquery.dataTables.min.css">
+    {% block link %}{% endblock link %}
+    <style type="text/css">
+        .table th, .table td:not(.not-center){  
+            text-align: center;  
+            vertical-align: middle!important;  
+        }
+
+    </style>
+</head>
+<body>
+<div class="navbar navbar-inverse" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse" style="position:relative;top:15px">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            {% block webname %}{% endblock webname %}
+        </div>
+        <div class="collapse navbar-collapse" id="navbar-collapse">
+            <ul class="nav navbar-nav navbar-right navbar-brand">
+                <li><a href="{% url 'index' %}"><span class="glyphicon glyphicon-hand-right"></span> 返回首页</a></li>
+                <li><a href="{% url 'logout' %}?next={{ request.path }}"><span class="glyphicon glyphicon-hand-right"></span> 注销登录</a></li>
+                <li><a href="{% url 'password_change' %}?next={{ request.path }}"><span class="glyphicon glyphicon-hand-right"></span> 修改密码</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="#"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ user.nickname }}</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% if messages %} {% for message in messages %}
+<div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning!</strong> {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if user.is_authenticated %}
+
+{% block main %}{% endblock main %}
+
+{% else %}
+    <p class="h4 text-center">你还没有登录，请
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-default" role="button">登录</a>
+        <input type="hidden" name="next" value="{{ next }}"/>
+         或者联系管理员<strong style="color: firebrick">周谢波</strong>注册账户
+        <!--<a href="{% url 'register' %}" class="btn btn-default" role="button">注册</a>-->
+    </p>
+{% endif %}
+
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script type="text/javascript" charset="utf8" src="/static/js/jquery.dataTables.js"></script>
+<script src="/static/js/unslider.min.js"></script>
+{% block scripts %}{% endblock scripts %}
+<script type="text/javascript">
+$(document).ready(function(){
+    $('#table_id_index').DataTable();
+    $('#table_id_detail').DataTable();
+    $('#table_id_vote_index').DataTable();
+});
+</script>
+</body>
+</html>

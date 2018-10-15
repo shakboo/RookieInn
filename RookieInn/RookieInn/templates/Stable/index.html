@@ -1,0 +1,329 @@
+
+{% extends 'base.html' %}
+
+{% block title %}<title>稳定性点位管理平台</title>{% endblock %}
+
+{% block webname %}
+<h1 class="navbar-brand" style="position:relative;bottom:3px"><a href="{% url 'Stable:index' %}" style="text-decoration:none"><font style="color:grey;font-size:180%">稳定性点位管理平台</font></a></h1>
+{% endblock %}
+
+{% block main %}
+
+<form role="form">
+    <div class="form-group">
+      <label for="name" style="display: inline;">选择点位位置：</label>
+      <select class="form-control" style="width: 20%;display: inline;" id="select-location">
+        <option value="0">全部</option>
+        <option value="1">B3楼顶园区方向</option>
+        <option value="2">B3楼顶群乐方向</option>
+      </select>
+    </div>
+</form>
+
+<table class="table table-striped display" id="table_id_index">
+    <!--管理员渲染此页面-->
+    {% if user.isAdminStable %}
+    <thead>
+        <tr>
+            <th class="text-center">IP</th>
+            <th class="text-center">位置</th>
+            <th class="text-center">状态 <span class="badge">{{ devices_in_loading }}</span></th>
+            <th class="text-center">管理员</th>
+            <th class="text-center">使用信息</th>
+            <th class="text-center">申请使用</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for device in devices %}
+        <tr>
+            <td class="text-center" width="15%">{{ device.ip }}</td>
+            <td class="text-center location" width="15%">{{ device.location }}</td>
+            {% if device.status == '使用中' %}
+            <td class="text-center" width="15%" style="background-color: rgb(255, 78, 78);">
+            {% elif device.status == '未使用' %}
+            <td class="text-center" width="15%" style="background-color: rgb(79, 204, 79);">    
+            {% else %}
+            <td class="text-center" width="15%" style="background-color: yellow;">
+            {% endif %}
+            {% if device.status == '待批准' %}                
+                {{ device.status }}<a href="{% url 'Stable:approve' device.id %}" class="approve"><span class="glyphicon glyphicon-ok"></span></a>   <a href="{% url 'Stable:delete' device.id %}" class="reject"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
+            {% elif device.status == '使用中' %}
+                {{ device.status }}<a href="{% url 'Stable:delete' device.id %}" class="delete"><span class="glyphicon glyphicon-remove"></span></a>
+            {% else %}
+                {{ device.status }}
+            {% endif %}
+            </td>
+            <td class="text-center" width="15%">{{ device.admin }}</td>
+            <td class="text-center" width="15%">
+                {% if device.status == '未使用' %}
+                    无
+                {% else %}
+                    {{ device.user }}
+                    <a href="#" data-toggle="modal" data-target="#detail{{ forloop.counter }}">
+                        <span class="glyphicon glyphicon-search"></span>
+                    </a>
+                {% endif %}
+            </td>
+            <td class="text-center" width="15%">
+                    {% if device.status == '未使用' %}
+                    <a href="#" data-toggle="modal" data-target="#submit{{ forloop.counter }}">
+                        <button type="button" class="btn btn-warning">申请</button>
+                    </a>
+                    {% else %}
+                    该点位暂不能申请
+                    {% endif %}
+            </td>
+        </tr>
+
+        <!--使用情况模态框-->
+        <div class="modal fade" id="detail{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                      <h4 class="modal-title" id="myModalLabel">设备信息</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>使用者：{{ device.user }}</p>
+                        <p>设备信息：</p>
+                        <pre>{{ device.information }}</pre>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                  </div>
+                </div>
+        </div>
+
+        <!--申请提交模态框-->
+        <div class="modal fade" id="submit{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                      <h4 class="modal-title" id="myModalLabel">申请信息</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form" action="{% url 'Stable:submit' device.id %}" method="POST">
+                            {% csrf_token %}
+                            <textarea class="form-control" placeholder="请输入设备信息" name="information" id="information{{ forloop.counter }}"></textarea>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary application" id="{{ forloop.counter }}">申请</button>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                            </div>
+                        </form>
+                    </div>
+                  </div>
+                </div>
+        </div>
+
+        {% endfor %}
+  </tbody>
+
+  <!--普通用户渲染此页面-->
+  {% else %}
+  <thead>
+        <tr>
+            <th class="text-center">IP</th>
+            <th class="text-center">位置</th>
+            <th class="text-center">状态</th>
+            <th class="text-center">管理员</th>
+            <th class="text-center">使用信息</th>
+            <th class="text-center">申请使用</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for device in devices %}
+        <tr>
+            <td class="text-center" width="15%">
+                {% if device.user == user.nickname and device.status == '使用中' %}
+                {{ device.ip }}
+                {% else %}
+                该IP不可见
+                {% endif %}
+            </td>
+            <td class="text-center location" width="15%">{{ device.location }}</td>
+            {% if device.status == '使用中' %}
+            <td class="text-center" width="15%" style="background-color: rgb(255, 78, 78);">
+            {% elif device.status == '未使用' %}
+            <td class="text-center" width="15%" style="background-color: rgb(79, 204, 79);">    
+            {% else %}
+            <td class="text-center" width="15%" style="background-color: yellow;">
+            {% endif %}
+            {% if device.status == '待批准' %}                
+                {{ device.status }}
+                {% if device.user == user.nickname %}
+                <a href="{% url 'Stable:delete' device.id %}" class="reject_user"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
+                {% endif %}
+            {% elif device.status == '使用中' %}
+                {{ device.status }}
+                {% if device.user == user.nickname %}
+                <a href="{% url 'Stable:delete' device.id %}" class="delete"><span class="glyphicon glyphicon-remove"></span></a>
+                {% endif %}
+            {% else %}
+                {{ device.status }}
+            {% endif %}
+            </td>
+            <td class="text-center" width="15%">{{ device.admin }}</td>
+            <td class="text-center" width="15%">
+                {% if device.status == '未使用' %}
+                    无
+                {% else %}
+                {{ device.user }}    
+                <a href="#" data-toggle="modal" data-target="#detail{{ forloop.counter }}">
+                        <span class="glyphicon glyphicon-search"></span>
+                    </a>
+                {% endif %}
+            </td>
+            <td class="text-center" width="15%">
+                    {% if device.status == '未使用' %}
+                    <a href="#" data-toggle="modal" data-target="#submit{{ forloop.counter }}">
+                        <button type="button" class="btn btn-warning">申请</button>
+                    </a>
+                    {% else %}
+                    该点位暂不能申请
+                    {% endif %}
+            </td>
+        </tr>
+
+        <!--使用情况模态框-->
+        <div class="modal fade" id="detail{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                      <h4 class="modal-title" id="myModalLabel">设备信息</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>使用者：{{ device.user }}</p>
+                        <p>设备信息：</p>
+                        <pre>{{ device.information }}</pre>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                  </div>
+                </div>
+        </div>
+
+        <!--申请提交模态框-->
+        <div class="modal fade" id="submit{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                      <h4 class="modal-title" id="myModalLabel">申请信息</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form" action="{% url 'Stable:submit' device.id %}" method="POST">
+                            {% csrf_token %}
+                            <textarea class="form-control" placeholder="请输入设备信息" name="information" id="information{{ forloop.counter }}"></textarea>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary application" id="{{ forloop.counter }}">申请</button>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                            </div>
+                        </form>
+                    </div>
+                  </div>
+                </div>
+        </div>
+
+        {% endfor %}
+  </tbody>
+  {% endif %}
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+$(function(){
+    $(".approve").bind('click', function () {
+        if(confirm("确定批准该点位请求吗？")==true){
+            return true;
+        }else{
+            return false;
+        };
+    });
+
+    $(".reject").bind('click', function () {
+        if(confirm("确定拒绝该点位请求吗？")==true){
+            return true;
+        }else{
+            return false;
+        };
+    });
+
+    $(".reject_user").bind('click', function () {
+        if(confirm("确定取消申请吗？")==true){
+            return true;
+        }else{
+            return false;
+        };
+    });
+
+    $(".delete").bind('click', function () {
+        if(confirm("确定删除该点位的使用信息并使该点位置为未使用吗？")==true){
+            return true;
+        }else{
+            return false;
+        };
+    });
+
+    $(".application").bind("click", function () {
+        var information_id = "#information" + $(this).attr("id");
+        if($(information_id).val()){
+            return true;
+        }else{
+            alert("请填写设备信息！");
+            return false;
+        };
+    });
+
+    $("#select-location").change(function(){
+        var location = $(this).children('option:selected').val();
+        if (location == "1"){
+            $(".location").each(function(){
+                if ($(this).html().search(/园区/) == -1){
+                    $(this).parent().hide();
+                }else{
+                    $(this).parent().show();
+                };
+            })
+        }else if (location == '2'){
+            $(".location").each(function(){
+                if ($(this).html().search(/群乐/) == -1){
+                    $(this).parent().hide();
+                }else{
+                    $(this).parent().show();
+                };
+            })            
+        }else if (location == '0'){
+            $(".location").each(function(){
+                $(this).parent().show();
+            })
+        }
+    })
+
+});
+
+
+$('#table_id_index').dataTable({
+    language:{
+        "sLengthMenu" : "每页 _MENU_ 条",    
+        'sSearch' : '搜索：',
+        "oPaginate": {    
+		"sFirst" : "第一页",    
+		"sPrevious" : "上一页",    
+		"sNext" : "下一页",    
+		"sLast" : "最后一页"    
+	    },
+        "sInfo" : "从 _START_ 到  _END_ 条记录 总记录数为 _TOTAL_ 条",  
+    },
+    aLengthMenu : [10, 30, 50], //更改显示记录数选项
+    bSort : false,
+});
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+
+{% extends 'base.html' %}
+
+{% block title %}<title>资料共享平台</title>{% endblock %}
+
+{% block webname %}
+<h1 class="navbar-brand" style="position:relative;bottom:3px"><a href="{% url 'Datum:index' %}" style="text-decoration:none"><font style="color:grey;font-size:180%">资料共享平台</font></a></h1>
+{% endblock %}
+
+{% block link %}
+<link rel="stylesheet" href="/static/zTree_v3/css/zTreeStyle/zTreeStyle.css" type="text/css">
+<style>
+	.left { 
+		width: 15%; 
+		height:100%;
+		float: left; } 
+	.right { 
+		width: 85%;
+		height: 100%; 
+		float: right;}
+	.main-text{
+		margin-right: 10px;
+		min-height: 100px;
+		padding: 10px;
+		position:relative;
+		background: -webkit-gradient(linear, 0% 20%, 0% 100%, from(#fff), to(#fff), color-stop(.2, #f2f2f2));
+		border: 1px solid #ccc;
+		-webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+} 
+</style>
+
+{% endblock %}
+
+{% block main %}
+<div>
+	<div class="left" id="tree"><ul id="treeDemo" class="ztree"></ul></div>
+	<div class="right"><div class="main-text"></div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="/static/zTree_v3/js/jquery.ztree.core.js"></script>
+<script>
+	var zTreeObj;
+	// zTree 的参数配置，深入使用请参考 API 文档（setting 配置详解）
+	var setting = {};
+	// zTree 的数据属性，深入使用请参考 API 文档（zTreeNode 节点数据详解）
+	var zNodes = [
+	{name:"test1", open:true, children:[
+		{name:"test1_1"}, {name:"test1_2"}]},
+	{name:"test2", open:true, children:[
+		{name:"test2_1"}, {name:"test2_2"}]}
+	];
+	$(document).ready(function(){
+		zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+	});
+</script>
+{% endblock %}
+
+
+

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block webname %}
+<h1 class="navbar-brand" style="position:relative;bottom:3px"><a href="{% url 'vote:index' %}" style="text-decoration:none"><font style="color:grey;font-size:180%">投票平台</font></a></h1>
+{% endblock %}
+
+{% block main %}
+{% if question.choose == '投票' %}
+<table class="table table-striped">
+  <caption class="h4 text-center">投票结果</caption>
+  <thead>
+    <tr>
+      <th class="text-center">票数</th>
+      <th class="text-center">投票人</th>
+      <th class="text-center">选项</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for choice in question.choice_set.all %}
+      <tr>
+          <td class="text-center" width="10%">{{ choice.choiceVote }}</td>
+          <td class="text-center" width="40%">{{ choice.whoVote }}</td>
+          <td class="text-center" width="50%">{{ choice.choiceText }}</td>
+      </tr>
+
+    {% endfor %}
+  </tbody>
+</table>
+<p class="text-center"><a type="button" class="btn btn-default" href="{% url 'vote:index' %}">点击返回</a></p>
+
+{% elif question.choose == '问答' %}
+<table class="table table-striped">
+  <caption class="h4 text-center">投票结果</caption>
+  <thead>
+    <tr>
+      <th class="text-center">问题</th>
+      <th class="text-center">问答结果</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for choice in question.choice_set.all %}
+      <tr>
+          <td class="text-center" width="50%" style="text-align: left;">{{ choice.choiceText }}</td>
+          <td class="text-center" width="50%"><pre style="text-align: left; white-space: pre-wrap; word-wrap: break-word;">{{ choice.choiceAnswer }}</pre></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p class="text-center"><a type="button" class="btn btn-default" href="{% url 'vote:index' %}">点击返回</a></p>
+
+{% else %}
+<table class="table table-striped">
+  <caption class="h4 text-center">公告确认</caption>
+  <thead>
+    <tr>
+      <th class="text-center">确认人</th>
+      <th class="text-center">公告</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for choice in question.choice_set.all %}
+      <tr>
+          <td class="text-center" width="40%">{{ choice.whoVote }}</td>
+          <td class="text-center" width="60%">{{ choice.choiceText }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p class="text-center"><a type="button" class="btn btn-default" href="{% url 'vote:index' %}">点击返回</a></p>
+{% endif %}
+
+{% endblock %}
