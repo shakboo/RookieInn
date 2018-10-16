@@ -287,8 +287,10 @@ $(function(){
                     },
                 success:function(data){
                     var data = JSON.parse(data);
-                    $(status_id).html(data["status"] + '<a href="#" class="reject_user"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>');
-                    $(status_id).css('background-color', 'yellow');
+                    if (!data["error"]){
+                        $(status_id).html(data["status"] + '<a href="#" class="reject_user"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>');
+                        $(status_id).css('background-color', 'yellow');
+                    };
                     $(submit_id).modal('hide');
                 }
             });

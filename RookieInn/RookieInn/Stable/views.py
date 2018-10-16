@@ -24,19 +24,22 @@ def index(request):
 
 def submit(request):
     if request.is_ajax() and request.method == "POST":
+        ret = {'status':'', 'error':''}
         pk = request.POST.get("pk")
         information = request.POST.get("content")
         device = get_object_or_404(Device, pk=pk)
         if device.status == '未使用':
+            ret['error'] = 0
             device.information = information
             device.user = request.user.nickname
             device.status = '待批准'
             device.save()
             logger.info('{0}申请{1}点位成功,待管理员{2}批准'.format(request.user.nickname, device.location, device.admin))
         else:
+            ret['error'] = 1
             messages.warning(request, "操作失败，该点位已经被{0}申请使用".format(device.user))
-        status = device.status
-        return HttpResponse(json.dumps({"status":status}))
+        ret['status'] = device.status
+        return HttpResponse(json.dumps(ret))
     else:
         return HttpResponseRedirect(reverse('Stable:index'))
 
