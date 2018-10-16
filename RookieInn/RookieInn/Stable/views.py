@@ -22,6 +22,7 @@ def index(request):
             'devices_in_loading' : devices_in_loading,
         })
 
+'''
 def submit(request, pk):
     device = get_object_or_404(Device, pk=pk)
     if device.status == '未使用':
@@ -33,6 +34,24 @@ def submit(request, pk):
     else:
         messages.warning(request, "操作失败，该点位已经被{0}申请使用".format(device.user))
     return HttpResponseRedirect(reverse('Stable:index'))
+'''
+def submit(request):
+    if request.is_ajax() and request.method == "POST":
+        pk = request.POST.get("pk")
+        information = request.POST.get("content")
+        device = get_object_or_404(Device, pk=pk)
+        if device.status == '未使用':
+            device.information = information
+            device.user = request.user.nickname
+            device.status = '待批准'
+            device.save()
+            logger.info('{0}申请{1}点位成功,待管理员{2}批准'.format(request.user.nickname, device.location, device.admin))
+        else:
+            messages.warning(request, "操作失败，该点位已经被{0}申请使用".format(device.user))
+        status = device.status
+        return HttpResponse(json.dumps({"status":status}))
+    else:
+        return HttpResponseRedirect(reverse('Stable:index'))
 
 
 def approve(request, pk):

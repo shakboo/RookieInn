@@ -39,9 +39,9 @@
             <td class="text-center" width="15%">{{ device.ip }}</td>
             <td class="text-center location" width="15%">{{ device.location }}</td>
             {% if device.status == '使用中' %}
-            <td class="text-center" width="15%" style="background-color: rgb(255, 78, 78);">
+            <td class="text-center" width="15%"  style="background-color: rgb(255, 78, 78);">
             {% elif device.status == '未使用' %}
-            <td class="text-center" width="15%" style="background-color: rgb(79, 204, 79);">    
+            <td class="text-center" width="15%" id="status{{ forloop.counter }}" style="background-color: rgb(79, 204, 79);">    
             {% else %}
             <td class="text-center" width="15%" style="background-color: yellow;">
             {% endif %}
@@ -104,11 +104,12 @@
                       <h4 class="modal-title" id="myModalLabel">申请信息</h4>
                     </div>
                     <div class="modal-body">
-                        <form class="form" action="{% url 'Stable:submit' device.id %}" method="POST">
+                        <!--<form class="form" action="{% url 'Stable:submit' device.id %}" method="POST">-->
+                        <form class="form">
                             {% csrf_token %}
                             <textarea class="form-control" placeholder="请输入设备信息" name="information" id="information{{ forloop.counter }}"></textarea>
                             <div class="modal-footer">
-                                <button type="submit" class="btn btn-primary application" id="{{ forloop.counter }}">申请</button>
+                                <button type="button" class="btn btn-primary application" id="{{ forloop.counter }}" name="{{ device.id }}">申请</button>
                                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
                             </div>
                         </form>
@@ -144,7 +145,7 @@
             </td>
             <td class="text-center location" width="15%">{{ device.location }}</td>
             {% if device.status == '使用中' %}
-            <td class="text-center" width="15%" style="background-color: rgb(255, 78, 78);">
+            <td class="text-center" id="status{{ forloop.counter }}" width="15%" style="background-color: rgb(255, 78, 78);">
             {% elif device.status == '未使用' %}
             <td class="text-center" width="15%" style="background-color: rgb(79, 204, 79);">    
             {% else %}
@@ -270,9 +271,37 @@ $(function(){
         };
     });
 
-    $(".application").bind("click", function () {
+    /*$(".application").bind("click", function () {
         var information_id = "#information" + $(this).attr("id");
         if($(information_id).val()){
+            return true;
+        }else{
+            alert("请填写设备信息！");
+            return false;
+        };
+    });*/
+    $(".application").bind("click", function () {
+        var information_id = "#information" + $(this).attr("id");
+        var submit_id = "#submit" + $(this).attr("id");
+        var status_id = "#status" + $(this).attr("id");
+        if($(information_id).val()){
+            pk = $(this).attr("name");
+            content = $(information_id).val();
+            $.ajax({
+                url: "/Stable/submit/",
+                type:"POST",
+                data:{
+                    "pk":pk,
+                    "content":content,
+                    "csrfmiddlewaretoken":$('[name="csrfmiddlewaretoken"]').val()
+                    },
+                success:function(data){
+                    var data = JSON.parse(data);
+                    $(status_id).html(data["status"] + '<a href="#" class="reject_user"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>');
+                    $(status_id).css('background-color', 'yellow');
+                    $(submit_id).modal('hide');
+                }
+            });
             return true;
         }else{
             alert("请填写设备信息！");
