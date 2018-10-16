@@ -104,7 +104,6 @@
                       <h4 class="modal-title" id="myModalLabel">申请信息</h4>
                     </div>
                     <div class="modal-body">
-                        <!--<form class="form" action="{% url 'Stable:submit' device.id %}" method="POST">-->
                         <form class="form">
                             {% csrf_token %}
                             <textarea class="form-control" placeholder="请输入设备信息" name="information" id="information{{ forloop.counter }}"></textarea>
@@ -271,15 +270,6 @@ $(function(){
         };
     });
 
-    /*$(".application").bind("click", function () {
-        var information_id = "#information" + $(this).attr("id");
-        if($(information_id).val()){
-            return true;
-        }else{
-            alert("请填写设备信息！");
-            return false;
-        };
-    });*/
     $(".application").bind("click", function () {
         var information_id = "#information" + $(this).attr("id");
         var submit_id = "#submit" + $(this).attr("id");
