@@ -27,7 +27,7 @@
         <tr>
             <th class="text-center">IP</th>
             <th class="text-center">位置</th>
-            <th class="text-center">状态 <span class="badge">{{ devices_in_loading }}</span></th>
+            <th class="text-center">状态 <span class="badge" id="badge">{{ devices_in_loading }}</span></th>
             <th class="text-center">管理员</th>
             <th class="text-center">使用信息</th>
             <th class="text-center">申请使用</th>
@@ -54,7 +54,7 @@
             {% endif %}
             </td>
             <td class="text-center" width="15%">{{ device.admin }}</td>
-            <td class="text-center" width="15%">
+            <td class="text-center" width="15%" id="user_information{{ forloop.counter }}">
                 {% if device.status == '未使用' %}
                     无
                 {% else %}
@@ -64,7 +64,7 @@
                     </a>
                 {% endif %}
             </td>
-            <td class="text-center" width="15%">
+            <td class="text-center" width="15%" id="apply{{ forloop.counter }}">
                     {% if device.status == '未使用' %}
                     <a href="#" data-toggle="modal" data-target="#submit{{ forloop.counter }}">
                         <button type="button" class="btn btn-warning">申请</button>
@@ -235,100 +235,8 @@
 {% endblock %}
 
 {% block scripts %}
+<script type="text/javascript" src="/static/js/Stable/index.js"></script>
 <script>
-
-$(function(){
-    $(".approve").bind('click', function () {
-        if(confirm("确定批准该点位请求吗？")==true){
-            return true;
-        }else{
-            return false;
-        };
-    });
-
-    $(".reject").bind('click', function () {
-        if(confirm("确定拒绝该点位请求吗？")==true){
-            return true;
-        }else{
-            return false;
-        };
-    });
-
-    $(".reject_user").bind('click', function () {
-        if(confirm("确定取消申请吗？")==true){
-            return true;
-        }else{
-            return false;
-        };
-    });
-
-    $(".delete").bind('click', function () {
-        if(confirm("确定删除该点位的使用信息并使该点位置为未使用吗？")==true){
-            return true;
-        }else{
-            return false;
-        };
-    });
-
-    $(".application").bind("click", function () {
-        var information_id = "#information" + $(this).attr("id");
-        var submit_id = "#submit" + $(this).attr("id");
-        var status_id = "#status" + $(this).attr("id");
-        if($(information_id).val()){
-            pk = $(this).attr("name");
-            content = $(information_id).val();
-            $.ajax({
-                url: "/Stable/submit/",
-                type:"POST",
-                data:{
-                    "pk":pk,
-                    "content":content,
-                    "csrfmiddlewaretoken":$('[name="csrfmiddlewaretoken"]').val()
-                    },
-                success:function(data){
-                    var data = JSON.parse(data);
-                    if (!data["error"]){
-                        $(status_id).html(data["status"] + '<a href="#" class="reject_user"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>');
-                        $(status_id).css('background-color', 'yellow');
-                    };
-                    $(submit_id).modal('hide');
-                }
-            });
-            return true;
-        }else{
-            alert("请填写设备信息！");
-            return false;
-        };
-    });
-
-    $("#select-location").change(function(){
-        var location = $(this).children('option:selected').val();
-        if (location == "1"){
-            $(".location").each(function(){
-                if ($(this).html().search(/园区/) == -1){
-                    $(this).parent().hide();
-                }else{
-                    $(this).parent().show();
-                };
-            })
-        }else if (location == '2'){
-            $(".location").each(function(){
-                if ($(this).html().search(/群乐/) == -1){
-                    $(this).parent().hide();
-                }else{
-                    $(this).parent().show();
-                };
-            })            
-        }else if (location == '0'){
-            $(".location").each(function(){
-                $(this).parent().show();
-            })
-        }
-    })
-
-});
-
-
 $('#table_id_index').dataTable({
     language:{
         "sLengthMenu" : "每页 _MENU_ 条",    
@@ -344,7 +252,5 @@ $('#table_id_index').dataTable({
     aLengthMenu : [10, 30, 50], //更改显示记录数选项
     bSort : false,
 });
-
-
 </script>
 {% endblock %}
