@@ -47,22 +47,40 @@ def submit(request):
         return HttpResponseRedirect(reverse('Stable:index'))
 
 
-def approve(request, pk):
-    device = get_object_or_404(Device, pk=pk)
-    if device.status == '待批准':
-        device.status = '使用中'
-        device.save()
-        logger.info('管理员{2}批准{0}的使用{1}点位申请'.format(device.user, device.location, request.user.nickname))
-    return HttpResponseRedirect(reverse('Stable:index'))
-
-def delete(request, pk):
-    device = get_object_or_404(Device, pk=pk)
-    if request.user.nickname == device.user or request.user.isAdminStable or not device.user:
-        device.status = '未使用'
-        device.information = ''
-        device.user = ''
-        device.save()
-        logger.info('点位{0}由{1}重置为未使用状态'.format(device.location, request.user.nickname))
+def approve(request):
+    if request.is_ajax() and request.method == "POST":
+        pk = request.POST.get("pk")
+        ret = {'error':'', 'status':''}
+        device = get_object_or_404(Device, pk=pk)
+        if device.status == '待批准':
+            ret['error'] = 0
+            device.status = '使用中'
+            device.save()
+            logger.info('管理员{2}批准{0}的使用{1}点位申请'.format(device.user, device.location, request.user.nickname))
+        else:
+            ret['error'] = 1
+            messages.warning(request, "操作失败，该点位已经被批准或者用户取消了申请")
+        ret['status'] = device.status
+        return HttpResponse(json.dumps(ret))
     else:
-        messages.warning(request, "操作失败，该点位已经被{0}申请使用".format(device.user))
-    return HttpResponseRedirect(reverse('Stable:index'))
+        return HttpResponseRedirect(reverse('Stable:index'))
+
+def delete(request):
+    if request.is_ajax() and request.method == "POST":
+        ret = {'error':'', 'status':''}
+        pk = request.POST.get("pk")
+        device = get_object_or_404(Device, pk=pk)
+        if request.user.nickname == device.user or request.user.isAdminStable or not device.user:
+            ret['error'] = 0
+            device.status = '未使用'
+            device.information = ''
+            device.user = ''
+            device.save()
+            logger.info('点位{0}由{1}重置为未使用状态'.format(device.location, request.user.nickname))
+        else:
+            ret['error'] = 1
+            messages.warning(request, "操作失败，该点位已经被{0}申请使用".format(device.user))
+        ret['status'] = device.status
+        return HttpResponse(json.dumps(ret))
+    else:
+        return HttpResponseRedirect(reverse('Stable:index'))
