@@ -135,8 +135,10 @@
     <tbody>
         {% for device in devices %}
         <tr>
-            <td class="text-center" width="15%">
+            <td class="text-center" width="15%" id="ip{{ forloop.counter }}">
                 {% if device.user == user.nickname and device.status == '未批准' %}
+                {{ device.ip }}
+                {% elif device.user == user.nickname and device.status == '使用中' %}
                 {{ device.ip }} 
                 {% else %}
                 该IP不可见

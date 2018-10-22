@@ -1,4 +1,6 @@
 $(function(){
+
+    // 管理员批准点位申请
     $("body").on('click', '.approve', function () {
         var id = $(this).attr("data-id");
         var status_id = "#status" + id;
@@ -27,6 +29,7 @@ $(function(){
         };
     });
 
+    // 管理员拒绝点位批准的申请
     $("body").on('click', '.reject', function () {
         var id = $(this).attr("data-id");
         var status_id = "#status" + id;
@@ -65,6 +68,7 @@ $(function(){
         };
     });
 
+    // 普通用户取消待批准的点位申请
     $("body").on('click', '.reject_user', function () {
         var id = $(this).attr("data-id");
         var status_id = "#status" + id;
@@ -72,6 +76,7 @@ $(function(){
         var apply_id = '#apply' + id;
         var submit_id = "#submit" + id;
         var badge_number = parseInt($('#badge').text());
+        var ip_id = "#ip" + id;
         if(confirm("确定取消申请吗？")==true){
             var pk = $(this).attr("name");
             $.ajax({
@@ -94,6 +99,7 @@ $(function(){
                             </a>'
                         );
                         $(submit_id+" textarea").val("");
+                        $(ip_id).html("该IP不可见");
                     }
                 }
             });
@@ -103,12 +109,14 @@ $(function(){
         };
     });
 
+    // 将使用中的点位置为未使用
     $("body").on('click', '.delete', function () {
         var id = $(this).attr("data-id");
         var status_id = "#status" + id;
         var user_information_id = "#user_information" + id;
         var apply_id = '#apply' + id;
         var submit_id = "#submit" + id;
+        var ip_id = "#ip" + id;
         if(confirm("确定删除该点位的使用信息并使该点位置为未使用吗？")==true){
             var pk = $(this).attr("name");
             $.ajax({
@@ -130,6 +138,9 @@ $(function(){
                             </a>'
                         );
                         $(submit_id+" textarea").val("");
+                        if(!data['isAdmin']){
+                            $(ip_id).html("该IP不可见");
+                        }
                     }
                 }
             });
@@ -139,6 +150,7 @@ $(function(){
         };
     });
 
+    // 申请提交
     $("body").on("click", '.application', function () {
         var id = $(this).attr("data-id");
         var information_id = "#information" + id;
@@ -147,6 +159,7 @@ $(function(){
         var status_id = "#status" + id;
         var user_information_id = "#user_information" + id;
         var apply_id = '#apply' + id;
+        var ip_id = '#ip' + id;
         if($(information_id).val()){
             var pk = $(this).attr("name");
             content = $(information_id).val();
@@ -177,7 +190,8 @@ $(function(){
                             '<p>使用者：'+data['user']+'</p>\
                             <p>设备信息：</p>\
                             <pre>'+data['information']+'</pre>'
-                        )
+                        );
+                        $(ip_id).html(data['ip']);
                     };
                     $(submit_id).modal('hide');
                 }
