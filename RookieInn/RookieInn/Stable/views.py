@@ -39,7 +39,7 @@ def submit(request):
             ret['user'] = device.user
             ret['information'] = device.information
             ret['ip'] = device.ip
-            logger.info('{0}申请{1}点位成功,待管理员{2}批准'.format(request.user.nickname, device.location, device.admin))
+            logger.info('{0}申请{1}点位成功,待管理员{2}批准\r'.format(request.user.nickname, device.location, device.admin))
         else:
             messages.warning(request, "操作失败，该点位已经被{0}申请使用".format(device.user))
             return HttpResponseRedirect(reverse('Stable:index'))
@@ -59,7 +59,7 @@ def approve(request):
             ret['error'] = 0
             device.status = '使用中'
             device.save()
-            logger.info('管理员{2}批准{0}的使用{1}点位申请'.format(device.user, device.location, request.user.nickname))
+            logger.info('管理员{2}批准{0}的使用{1}点位申请\r'.format(device.user, device.location, request.user.nickname))
         else:
             messages.warning(request, "操作失败，该点位已经被批准或者用户取消了申请")
             return HttpResponseRedirect(reverse('Stable:index'))
@@ -80,7 +80,7 @@ def delete(request):
             device.information = ''
             device.user = ''
             device.save()
-            logger.info('点位{0}由{1}重置为未使用状态'.format(device.location, request.user.nickname))
+            logger.info('点位{0}由{1}重置为未使用状态\r'.format(device.location, request.user.nickname))
         elif not device.user:
             messages.warning(request, "操作失败，该点位已经处于未使用状态了")
             return HttpResponseRedirect(reverse('Stable:index'))

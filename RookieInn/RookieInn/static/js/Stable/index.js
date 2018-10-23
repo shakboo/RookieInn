@@ -203,28 +203,14 @@ $(function(){
         };
     });
 
+    // 下拉框筛选用dataTable搜索栏实现
     $("#select-location").change(function(){
         var location = $(this).children('option:selected').val();
-        if (location == "1"){
-            $(".location").each(function(){
-                if ($(this).html().search(/园区/) == -1){
-                    $(this).parent().hide();
-                }else{
-                    $(this).parent().show();
-                };
-            })
-        }else if (location == '2'){
-            $(".location").each(function(){
-                if ($(this).html().search(/群乐/) == -1){
-                    $(this).parent().hide();
-                }else{
-                    $(this).parent().show();
-                };
-            })            
-        }else if (location == '0'){
-            $(".location").each(function(){
-                $(this).parent().show();
-            })
+        var table = $('#table_id_index').DataTable();
+        if (location != "0"){
+            table.search($(this).children('option:selected').text()).draw();
+        }else{
+            table.search('').draw();
         }
-    })
+    });
 })
