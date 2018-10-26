@@ -5,6 +5,7 @@ from django.db import models
 
 # Create your models here.
 
+# 稳定性点位信息
 class Device(models.Model):
     ip = models.CharField(u'IP', max_length=20)
     location = models.CharField(u'位置', max_length=50)
@@ -25,3 +26,16 @@ class Device(models.Model):
 
     class Meta:
         ordering = ['-status']
+
+# web可视化log
+class Log(models.Model):
+    date = models.DateTimeField(u'日期', auto_now_add=True)
+    handler = models.CharField(u'操作者', max_length=20)
+    content = models.CharField(u'内容', max_length=100)
+
+    def __unicode__(self):
+        return self.date.strftime('%Y-%m-%d %H:%M:%S')
+
+    class Meta:
+        ordering = ['-date']
+
