@@ -10,20 +10,18 @@
 {% block main %}
 
 <form role="form">
-    <div class="form-group" style="display: inline;">
+    <div class="form-group">
       <label for="name" style="display: inline;">选择点位位置：</label>
-      <select class="form-control select-box" style="width: 20%; display: inline;" id="select-location">
+      <select class="form-control" style="width: 20%;display: inline;" id="select-location">
         <option value="0">全部</option>
         <option value="1">B3楼顶园区方向</option>
         <option value="2">B3楼顶群乐方向</option>
       </select>
     </div>
-    <a role="button" href="#" class="btn btn-primary" >查看日志</a>
 </form>
 
 <table class="table table-striped display" id="table_id_index">
-    <!--管理员渲染此页面-->
-    {% if user.isAdminStable %}
+
     <thead>
         <tr>
             <th class="text-center">IP</th>
@@ -37,24 +35,61 @@
     <tbody>
         {% for device in devices %}
         <tr>
+            <!--IP列-->
+            {% if user.isAdminStable %}
             <td class="text-center" width="15%">{{ device.ip }}</td>
+            {% else %}
+            <td class="text-center" width="15%" id="ip{{ forloop.counter }}">
+                    {% if device.user == user.nickname and device.status == '未批准' %}
+                    {{ device.ip }}
+                    {% elif device.user == user.nickname and device.status == '使用中' %}
+                    {{ device.ip }} 
+                    {% else %}
+                    该IP不可见
+                    {% endif %}
+            </td>
+            {% endif %}            
+
+            <!--位置列-->
             <td class="text-center location" width="15%">{{ device.location }}</td>
+
+            <!--状态列-->
             {% if device.status == '使用中' %}
             <td class="text-center" width="15%" id="status{{ forloop.counter }}" style="background-color: rgb(255, 78, 78);">
             {% elif device.status == '未使用' %}
-            <td class="text-center" width="15%" id="status{{ forloop.counter }}" style="background-color: rgb(79, 204, 79);">    
+            <td class="text-center" width="15%" id="status{{ forloop.counter }}" style="background-color: rgb(79, 204, 79);">
             {% else %}
             <td class="text-center" width="15%" id="status{{ forloop.counter }}" style="background-color: yellow;">
             {% endif %}
-            {% if device.status == '待批准' %}                
-                {{ device.status }}<a href="#" class="approve" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-ok"></span></a>   <a href="#" class="reject" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
-            {% elif device.status == '使用中' %}
-                {{ device.status }}<a href="#" class="delete" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove"></span></a>
+            {% if user.isAdminStable %}
+                {% if device.status == '待批准' %}                
+                    {{ device.status }}<a href="#" class="approve" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-ok"></span></a>   <a href="#" class="reject" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
+                {% elif device.status == '使用中' %}
+                    {{ device.status }}<a href="#" class="delete" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove"></span></a>
+                {% else %}
+                    {{ device.status }}
+                {% endif %}
             {% else %}
-                {{ device.status }}
+                {% if device.status == '待批准' %}                
+                    {{ device.status }}
+                    {% if device.user == user.nickname %}
+                    <a href="#" class="reject_user" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
+                    {% endif %}
+                {% elif device.status == '使用中' %}
+                    {{ device.status }}
+                    {% if device.user == user.nickname %}
+                    <a href="#" class="delete" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove"></span></a>
+                    {% endif %}
+                {% else %}
+                    {{ device.status }}
+                {% endif %}            
             {% endif %}
             </td>
+
+            <!--管理员列-->
             <td class="text-center" width="15%">{{ device.admin }}</td>
+
+            <!--详细信息列-->
             <td class="text-center" width="15%" id="user_information{{ forloop.counter }}">
                 {% if device.status == '未使用' %}
                     无
@@ -65,6 +100,8 @@
                     </a>
                 {% endif %}
             </td>
+
+            <!--申请列-->
             <td class="text-center" width="15%" id="apply{{ forloop.counter }}">
                     {% if device.status == '未使用' %}
                     <a href="#" data-toggle="modal" data-target="#submit{{ forloop.counter }}">
@@ -120,121 +157,6 @@
 
         {% endfor %}
   </tbody>
-
-  <!--普通用户渲染此页面-->
-  {% else %}
-  <thead>
-        <tr>
-            <th class="text-center">IP</th>
-            <th class="text-center">位置</th>
-            <th class="text-center">状态</th>
-            <th class="text-center">管理员</th>
-            <th class="text-center">使用信息</th>
-            <th class="text-center">申请使用</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for device in devices %}
-        <tr>
-            <td class="text-center" width="15%" id="ip{{ forloop.counter }}">
-                {% if device.user == user.nickname and device.status == '未批准' %}
-                {{ device.ip }}
-                {% elif device.user == user.nickname and device.status == '使用中' %}
-                {{ device.ip }} 
-                {% else %}
-                该IP不可见
-                {% endif %}
-            </td>
-            <td class="text-center location" width="15%">{{ device.location }}</td>
-            {% if device.status == '使用中' %}
-            <td class="text-center" id="status{{ forloop.counter }}" width="15%" style="background-color: rgb(255, 78, 78);">
-            {% elif device.status == '未使用' %}
-            <td class="text-center" id="status{{ forloop.counter }}" width="15%" style="background-color: rgb(79, 204, 79);">    
-            {% else %}
-            <td class="text-center" id="status{{ forloop.counter }}" width="15%" style="background-color: yellow;">
-            {% endif %}
-            {% if device.status == '待批准' %}                
-                {{ device.status }}
-                {% if device.user == user.nickname %}
-                <a href="#" class="reject_user" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
-                {% endif %}
-            {% elif device.status == '使用中' %}
-                {{ device.status }}
-                {% if device.user == user.nickname %}
-                <a href="#" class="delete" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove"></span></a>
-                {% endif %}
-            {% else %}
-                {{ device.status }}
-            {% endif %}
-            </td>
-            <td class="text-center" width="15%">{{ device.admin }}</td>
-            <td class="text-center" width="15%" id="user_information{{ forloop.counter }}">
-                {% if device.status == '未使用' %}
-                    无
-                {% else %}
-                {{ device.user }}    
-                <a href="#" data-toggle="modal" data-target="#detail{{ forloop.counter }}">
-                        <span class="glyphicon glyphicon-search"></span>
-                    </a>
-                {% endif %}
-            </td>
-            <td class="text-center" width="15%" id="apply{{ forloop.counter }}">
-                    {% if device.status == '未使用' %}
-                    <a href="#" data-toggle="modal" data-target="#submit{{ forloop.counter }}">
-                        <button type="button" class="btn btn-warning">申请</button>
-                    </a>
-                    {% else %}
-                    该点位暂不能申请
-                    {% endif %}
-            </td>
-        </tr>
-
-        <!--使用情况模态框-->
-        <div class="modal fade" id="detail{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                      <h4 class="modal-title" id="myModalLabel">设备信息</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>使用者：{{ device.user }}</p>
-                        <p>设备信息：</p>
-                        <pre>{{ device.information }}</pre>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    </div>
-                  </div>
-                </div>
-        </div>
-
-        <!--申请提交模态框-->
-        <div class="modal fade" id="submit{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                      <h4 class="modal-title" id="myModalLabel">申请信息</h4>
-                    </div>
-                    <div class="modal-body">
-                        <form class="form">
-                            {% csrf_token %}
-                            <textarea class="form-control" placeholder="请输入设备信息" name="information" id="information{{ forloop.counter }}"></textarea>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-primary application" data-id="{{ forloop.counter }}" name="{{ device.id }}">申请</button>
-                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                            </div>
-                        </form>
-                    </div>
-                  </div>
-                </div>
-        </div>
-
-        {% endfor %}
-  </tbody>
-  {% endif %}
-</table>
 {% endblock %}
 
 {% block scripts %}
