@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}<title>稳定性点位管理平台</title>{% endblock %}
+
+{% block webname %}
+<h1 class="navbar-brand" style="position:relative;bottom:3px"><a href="{% url 'Stable:index' %}" style="text-decoration:none"><font style="color:grey;font-size:180%">稳定性点位管理平台</font></a></h1>
+{% endblock %}
+
+{% block main %}
+<table class="table table-striped display" id="table_id_log">
+    <thead>
+        <tr>
+            <th class="text-center">日期</th>
+            <th class="text-center">操作者</th>
+            <th class="text-center">内容</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td class="text-center" width="25%">{{ log.date }}</td>
+            <td class="text-center" width="15%">{{ log.handler }}</td>
+            <td class="not-center" width="60%">{{ log.content }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('#table_id_log').dataTable({
+    language:{
+        "sLengthMenu" : "每页 _MENU_ 条",    
+        'sSearch' : '搜索：',
+        "oPaginate": {    
+		"sFirst" : "第一页",    
+		"sPrevious" : "上一页",    
+		"sNext" : "下一页",    
+		"sLast" : "最后一页"    
+	    },
+        "sInfo" : "从 _START_ 到  _END_ 条记录 总记录数为 _TOTAL_ 条",  
+    },
+    aLengthMenu : [30, 60, 90], //更改显示记录数选项
+    bSort : false,
+});
+</script>
+{% endblock %}

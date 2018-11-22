@@ -10,7 +10,7 @@
 {% block main %}
 
 <form role="form">
-    <div class="form-group">
+    <div class="form-group" style="display: inline;">
       <label for="name" style="display: inline;">选择点位位置：</label>
       <select class="form-control" style="width: 20%;display: inline;" id="select-location">
         <option value="0">全部</option>
@@ -18,6 +18,7 @@
         <option value="2">B3楼顶群乐方向</option>
       </select>
     </div>
+    <a class="btn btn-warning" role="button" href="{% url 'Stable:log' %}">查看日志</a>
 </form>
 
 <table class="table table-striped display" id="table_id_index">
@@ -154,9 +155,10 @@
                   </div>
                 </div>
         </div>
-
         {% endfor %}
   </tbody>
+</table>
+
 {% endblock %}
 
 {% block scripts %}

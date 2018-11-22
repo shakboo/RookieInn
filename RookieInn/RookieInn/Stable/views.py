@@ -98,3 +98,10 @@ def delete(request):
         return HttpResponse(json.dumps(ret))
     else:
         return HttpResponseRedirect(reverse('Stable:index'))
+
+# 日志处理
+def log(request):
+    logs = Log.objects.all()
+    return render(request, 'Stable/log.html', context={
+        'logs' : logs,
+    })

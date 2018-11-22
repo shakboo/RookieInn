@@ -9,4 +9,5 @@ urlpatterns = [
     url(r'^submit/$', views.submit, name='submit'),
     url(r'^approve/$', views.approve, name='approve'),
     url(r'^delete/$', views.delete, name='delete'),
+    url(r'^log/$', views.log, name='log'),
 ]
