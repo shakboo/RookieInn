@@ -26,18 +26,21 @@ def index(request):
 # 未使用->待批准
 def submit(request):
     if request.is_ajax() and request.method == "POST":
-        ret = {'status':'', 'error':1, 'user':'', 'information':'','isAdmin':'','ip':''}
+        ret = {'status':'', 'error':1, 'user':'', 'information':'','isAdmin':'','ip':'','expiration':''}
         pk = request.POST.get("pk")
         information = request.POST.get("content")
+        expiration = request.POST.get("expiration")
         device = get_object_or_404(Device, pk=pk)
         if device.status == '未使用':
             ret['error'] = 0
             device.information = information
+            device.expiration = expiration
             device.user = request.user.nickname
             device.status = '待批准'
             device.save()
             ret['user'] = device.user
             ret['information'] = device.information
+            ret['expiration'] = device.expiration
             ret['ip'] = device.ip
             info = '{0}申请{1}点位成功,待管理员{2}批准\r'.format(request.user.nickname, device.location, device.admin)
             logger.info(info)
@@ -75,7 +78,7 @@ def approve(request):
 # 使用中->未使用 and 待批准->未使用
 def delete(request):
     if request.is_ajax() and request.method == "POST":
-        ret = {'error':1, 'status':'', 'isAdmin':''}
+        ret = {'error':1, 'status':'', 'isAdmin':'', 'ip':''}
         pk = request.POST.get("pk")
         device = get_object_or_404(Device, pk=pk)
         if request.user.nickname == device.user or request.user.isAdminStable:
@@ -95,6 +98,7 @@ def delete(request):
             return HttpResponseRedirect(reverse('Stable:index'))
         ret['isAdmin'] = request.user.isAdminStable
         ret['status'] = device.status
+        ret['ip'] = device.ip
         return HttpResponse(json.dumps(ret))
     else:
         return HttpResponseRedirect(reverse('Stable:index'))

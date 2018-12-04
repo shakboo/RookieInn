@@ -28,7 +28,7 @@
             <th class="text-center">IP</th>
             <th class="text-center">位置</th>
             <th class="text-center">状态 <span class="badge" id="badge">{{ devices_in_loading }}</span></th>
-            <th class="text-center">管理员</th>
+            <th class="text-center">过期时间</th>
             <th class="text-center">使用信息</th>
             <th class="text-center">申请使用</th>
         </tr>
@@ -74,7 +74,7 @@
                 {% if device.status == '待批准' %}                
                     {{ device.status }}
                     {% if device.user == user.nickname %}
-                    <a href="#" class="reject_user" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
+                    <a href="#" class="reject" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
                     {% endif %}
                 {% elif device.status == '使用中' %}
                     {{ device.status }}
@@ -87,8 +87,12 @@
             {% endif %}
             </td>
 
-            <!--管理员列-->
-            <td class="text-center" width="15%">{{ device.admin }}</td>
+            <!--过期时间列-->
+            {% if device.status == '未使用' %}
+            <td class="text-center timed" width="15%" id="expiration{{ forloop.counter }}_web">暂无</td>
+            {% else %}
+            <td class="text-center timed" width="15%" id="expiration{{ forloop.counter }}_web">{{ device.expiration|date:"Y-m-d" }}</td>
+            {% endif %}
 
             <!--详细信息列-->
             <td class="text-center" width="15%" id="user_information{{ forloop.counter }}">
@@ -124,6 +128,7 @@
                     </div>
                     <div class="modal-body">
                         <p>使用者：{{ device.user }}</p>
+                        <p>管理员: 葛艳红</p>
                         <p>设备信息：</p>
                         <pre>{{ device.information }}</pre>
                     </div>
@@ -145,8 +150,15 @@
                     <div class="modal-body">
                         <form class="form">
                             {% csrf_token %}
-                            <textarea class="form-control" placeholder="请输入设备信息" name="information" id="information{{ forloop.counter }}"></textarea>
-                            <div class="modal-footer">
+                            <div>
+                                <label>到期时间：</label>
+                                <input type="text" class="expiration form-control" style="width: 30%;display: inline;" id="expiration{{ forloop.counter }}" value="" readonly>
+                            </div><br>
+                            <div>
+                                <label>设备信息：</label>
+                                <textarea class="form-control" placeholder="请输入设备信息" name="information" id="information{{ forloop.counter }}"></textarea>
+                            </div>
+                                <div class="modal-footer">
                                 <button type="button" class="btn btn-primary application" data-id="{{ forloop.counter }}" name="{{ device.id }}">申请</button>
                                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
                             </div>
@@ -158,6 +170,7 @@
         {% endfor %}
   </tbody>
 </table>
+
 
 {% endblock %}
 
@@ -179,5 +192,31 @@ $('#table_id_index').dataTable({
     aLengthMenu : [10, 30, 50], //更改显示记录数选项
     bSort : false,
 });
+
+
+$.fn.datetimepicker.dates['zh-CN'] = {
+			days: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"],
+			daysShort: ["周日", "周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+			daysMin:  ["日", "一", "二", "三", "四", "五", "六", "日"],
+			months: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+			monthsShort: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一", "十二"],
+			today: "明天",
+			suffix: [],
+			meridiem: ["上午", "下午"]
+
+}
+
+$('.expiration').datetimepicker({
+    format: "yyyy-mm-dd",
+    minView: 2,
+    language:"zh-CN", //汉化
+    todayBtn : true,  //显示今天按钮
+    autoclose : true,   //选择日期后自动关闭日期选择框
+    todayHighlight : false,   //当天高亮显示
+    startDate: new Date((new Date()).getTime() + 24*60*60*1000),
+    endDate: new Date((new Date()).getTime() + 24*60*60*1000*365)
+});
+
+console.log(new Date());
 </script>
 {% endblock %}

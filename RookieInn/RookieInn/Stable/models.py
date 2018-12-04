@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.utils import timezone
 
 # Create your models here.
 
@@ -12,6 +13,7 @@ class Device(models.Model):
     admin = models.CharField(u'管理员', max_length=20)
     user = models.CharField(u'使用者', max_length=20, blank=True)
     information = models.TextField(u'设备信息', max_length=100, blank=True)
+    expiration = models.DateField(u'过期时间', default=timezone.now)
 
     CHOOSE_BOX = (
         (u'未使用', u'未使用'),
