@@ -205,3 +205,8 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 ALLOWED_HOSTS = ['*']
 
 MEDIA_ROOT = '/upload/'
+
+# 定时任务参数配置
+CRONJOBS = (
+    ('00 9 * * *','Stable.timed.email_remind'),  # 点位即将过期或已经过期时的定时邮件提醒，每天9点运行一次
+)
