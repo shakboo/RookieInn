@@ -192,9 +192,9 @@ $(function(){
     });
 
     // 过期时间的提醒的前端实现
-    function time(){
+    function over_time(){
         var table = $('#table_id_index').DataTable();
-        var timed = table.cells('.timed').nodes();  // 所有class='timed'的节点
+        var timed = table.cells('.timed').nodes();  // 所有class='timed'的节
         var dateNow = new Date();
         for (var i=0,len=timed.length;i<len;i++){
             if(timed[i].innerHTML == '暂无'){
@@ -210,5 +210,5 @@ $(function(){
         }
     }
 
-    time();
+    over_time();
 })

@@ -68,8 +68,6 @@ SECRET_KEY = 'g9%jsb^s2&s3!8%1)78t9w^=i4c549@y(-5s23f6-^%^tg%i4q'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -80,12 +78,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_crontab',
+    'django_crontab',   # 定时任务
     'Task',
     'Task.templatetags',
     'Stable',
     'vote',
-    'Datum',
 ]
 
 MIDDLEWARE = [
@@ -192,8 +189,6 @@ USE_TZ = True
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL = '/'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
@@ -207,6 +202,17 @@ ALLOWED_HOSTS = ['*']
 MEDIA_ROOT = '/upload/'
 
 # 定时任务参数配置
+# 真是一个大坑windows下不能使用django_crontab
 CRONJOBS = (
     ('00 9 * * *','Stable.timed.email_remind'),  # 点位即将过期或已经过期时的定时邮件提醒，每天9点运行一次
 )
+
+# 邮箱配置
+USER_VERIFY_EMAIL = True   # 开启用户注册邮箱验证
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = False  
+EMAIL_HOST = 'smtp.qq.com'    # QQ邮箱测试，放到生产环境再填申请下来的内部邮箱 
+EMAIL_PORT = 25
+EMAIL_HOST_USER = '910298576@qq.com'  # QQ邮箱测试，放到生产环境再填申请下来的内部邮箱 
+EMAIL_HOST_PASSWORD = 'sylcwgqdrqeebebd' # QQ邮箱测试，放到生产环境再填申请下来的内部邮箱 
+DEFAULT_FROM_EMAIL = '910298576@qq.com' # QQ邮箱测试，放到生产环境再填申请下来的内部邮箱 

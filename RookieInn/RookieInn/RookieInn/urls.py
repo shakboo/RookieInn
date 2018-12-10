@@ -22,9 +22,9 @@ urlpatterns = [
     url(r'^$', index.index, name='index'),
     url(r'^auth/', include('django.contrib.auth.urls')),
     url(r'^register/', views.register, name='register'),
+    url(r'^activate/(?P<token>w+.[-_w]*w+.[-_w]*w+)/$', views.active_user, name='active_user'),
     url(r'^admin/', admin.site.urls),
     url(r'^Task/', include('Task.urls')),
     url(r'^Stable/', include('Stable.urls')),
     url(r'^vote/', include('vote.urls')),
-    url(r'^Datum/', include('Datum.urls')),
 ]

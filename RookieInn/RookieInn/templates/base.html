@@ -58,9 +58,9 @@
 {% else %}
     <p class="h4 text-center">你还没有登录，请
         <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-default" role="button">登录</a>
-        <input type="hidden" name="next" value="{{ next }}"/>
-         或者联系管理员<strong style="color: firebrick">周谢波</strong>注册账户
-        <!--<a href="{% url 'register' %}" class="btn btn-default" role="button">注册</a>-->
+        <!--<input type="hidden" name="next" value="{{ next }}"/>
+         或者联系管理员<strong style="color: firebrick">周谢波</strong>注册账户-->
+        或 <a href="{% url 'register' %}" class="btn btn-default" role="button">注册</a>
     </p>
 {% endif %}
 

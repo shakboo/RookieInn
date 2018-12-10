@@ -7,7 +7,7 @@ from django.forms import ModelForm
 class RegisterForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('username', 'nickname',)
+        fields = ('username', 'nickname', 'email')
 
 class UploadFileForm(ModelForm):
     class Meta:
