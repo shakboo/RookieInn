@@ -71,10 +71,9 @@ def register(request):
             token = token_confirm.generate_validate_token(username)
             message = u'{0}，欢迎注册，请访问http://{1}:8000/activate/{2}，完成用户验证。'.format(nickname, addr, token)
             title = u'注册用户验证信息'
-            # 目前会报编码相关的错误，等修复了再开放此功能
+            # 目前Windows会报编码相关的错误，在Mac下一切正常，等修复了再开放此功能
             try:
                 send_mail(title, message, settings.DEFAULT_FROM_EMAIL, [email,], fail_silently=False)
-                print 'success'
             except Exception as e:
                 user.is_active = True
                 user.save()
