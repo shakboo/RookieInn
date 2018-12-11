@@ -75,8 +75,7 @@ def register(request):
             try:
                 send_mail(title, message, settings.DEFAULT_FROM_EMAIL, [email,], fail_silently=False)
             except Exception as e:
-                user.is_active = True
-                user.save()
+                user.delete()
                 print e
 
             if redirect_to:

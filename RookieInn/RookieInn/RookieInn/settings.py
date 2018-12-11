@@ -78,7 +78,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_crontab',   # 定时任务
+    # 'django_crontab',    # 该配置在windows下无效，定时任务目前暂未用到
     'Task',
     'Task.templatetags',
     'Stable',

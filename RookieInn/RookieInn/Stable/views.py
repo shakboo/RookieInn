@@ -42,7 +42,7 @@ def submit(request):
             ret['information'] = device.information
             ret['expiration'] = device.expiration
             ret['ip'] = device.ip
-            info = '{0}申请{1}点位成功,待管理员{2}批准\r'.format(request.user.nickname, device.location, device.admin)
+            info = '{0}申请{1}点位成功,待管理员批准\r'.format(request.user.nickname, device.location)
             logger.info(info)
             Log.objects.create(handler=request.user.nickname, content=info)
         else:
