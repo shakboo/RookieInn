@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 
 {% block title %}<title>稳定性点位管理平台</title>{% endblock %}
@@ -31,13 +30,19 @@
             <th class="text-center">过期时间</th>
             <th class="text-center">使用信息</th>
             <th class="text-center">申请使用</th>
+            <!--以下隐藏信息是为了搜索的时候能用到-->
+            <th class="text-center" style="display: none">隐藏信息</th>
         </tr>
     </thead>
     <tbody>
         {% for device in devices %}
         <tr>
             <!--IP列-->
-            {% if user.isAdminStable %}
+            <td class="text-center ip" width="15%">
+                <span>{{ device.ip }}</span>
+                <i style="width:10px;height:10px;border-radius:50%;border-style: solid;border-width: thin;  background-color:red;display: inline-block"></i>
+            </td>
+            <!--{% if user.isAdminStable %}
             <td class="text-center" width="15%">{{ device.ip }}</td>
             {% else %}
             <td class="text-center" width="15%" id="ip{{ forloop.counter }}">
@@ -49,7 +54,7 @@
                     该IP不可见
                     {% endif %}
             </td>
-            {% endif %}            
+            {% endif %}-->            
 
             <!--位置列-->
             <td class="text-center location" width="15%">{{ device.location }}</td>
@@ -116,6 +121,9 @@
                     该点位暂不能申请
                     {% endif %}
             </td>
+
+            <!--隐藏信息-->
+            <td style="display: none">{{ device.information }}</td>
         </tr>
 
         <!--使用情况模态框-->
@@ -128,7 +136,7 @@
                     </div>
                     <div class="modal-body">
                         <p>使用者：{{ device.user }}</p>
-                        <p>管理员: 葛艳红</p>
+                        <p>管理员: {{ device.admin }}</p>
                         <p>设备信息：</p>
                         <pre>{{ device.information }}</pre>
                     </div>
@@ -170,12 +178,11 @@
         {% endfor %}
   </tbody>
 </table>
-
-
 {% endblock %}
 
 {% block scripts %}
 <script type="text/javascript" src="/static/js/Stable/index.js"></script>
+<script type="text/javascript" src="/static/js/Stable/ping.js"></script>
 <script>
 $('#table_id_index').dataTable({
     language:{
@@ -216,7 +223,5 @@ $('.expiration').datetimepicker({
     startDate: new Date((new Date()).getTime() + 24*60*60*1000),
     endDate: new Date((new Date()).getTime() + 24*60*60*1000*365)
 });
-
-console.log(new Date());
 </script>
-{% endblock %}
+{% endblock %}  

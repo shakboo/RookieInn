@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.shortcuts import reverse, render, HttpResponseRedirect, get_object_or_404,HttpResponse
 import json
+import os, sys
 from .models import Device, Log
 import logging
 from django.contrib import messages
@@ -26,7 +27,7 @@ def index(request):
 # 未使用->待批准
 def submit(request):
     if request.is_ajax() and request.method == "POST":
-        ret = {'status':'', 'error':1, 'user':'', 'information':'','isAdmin':'','ip':'','expiration':''}
+        ret = {'status':'', 'error':1, 'user':'', 'information':'','isAdmin':'','ip':'','expiration':'','admin':''}
         pk = request.POST.get("pk")
         information = request.POST.get("content")
         expiration = request.POST.get("expiration")
@@ -50,6 +51,7 @@ def submit(request):
             return HttpResponseRedirect(reverse('Stable:index'))
         ret['isAdmin'] = request.user.isAdminStable
         ret['status'] = device.status
+        ret['admin'] = device.admin
         return HttpResponse(json.dumps(ret))
     else:
         return HttpResponseRedirect(reverse('Stable:index'))
@@ -109,3 +111,25 @@ def log(request):
     return render(request, 'Stable/log.html', context={
         'logs' : logs,
     })
+
+# 后台ping设备
+def ping(request):
+    devices = Device.objects.all()
+    all_ip  =  [device.ip for device in devices]
+    if request.is_ajax() and request.method == "GET":
+        ret =  {}
+        # linux下用这个
+        for ip in all_ip:
+            backinfo = os.system('ping -c 1 -w 1 {0}'.format(ip))
+            if ' 0 reveived' in str(backinfo):
+                ret[ip] = 0
+            else:
+                ret[ip] = 1
+        # windows下
+        '''for ip in all_ip:
+            backinfo = os.system('ping -n 1 -w 1 {0}'.format(ip))
+            if backinfo:
+                ret[ip] = 0
+            else:
+                ret[ip] = 1'''
+        return HttpResponse(json.dumps(ret))

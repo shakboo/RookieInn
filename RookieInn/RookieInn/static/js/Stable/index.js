@@ -55,6 +55,7 @@ $(function(){
                         $(status_id).css('background-color', 'rgb(79, 204, 79)');
                         $(user_information_id).html("无");
                         $(expiration_id + '_web').html("暂无");
+                        $(expiration_id + '_web').css("color", 'black');
                         $('#badge').html(badge_number-1);
                         $(apply_id).html(
                             '<a href="#" data-toggle="modal" data-target="#submit'+id+'">\
@@ -66,7 +67,7 @@ $(function(){
                         if(!data['isAdmin']){
                             $(ip_id).html("该IP不可见");
                         } else {
-                            $(ip_id).html(date['ip']);
+                            $(ip_id).html(data['ip']);
                         }
                     }
                 }
@@ -85,7 +86,7 @@ $(function(){
         var user_information_id = "#user_information" + id;
         var apply_id = '#apply' + id;
         var submit_id = "#submit" + id;
-        var ip_id = "#ip" + id;
+        //var ip_id = "#ip" + id;
         if(confirm("确定删除该点位的使用信息并使该点位置为未使用吗？")==true){
             var pk = $(this).attr("name");
             $.ajax({
@@ -107,10 +108,11 @@ $(function(){
                             </a>'
                         );
                         $(expiration_id + '_web').html("暂无");
+                        $(expiration_id + '_web').css("color", 'black');
                         $(submit_id+" textarea").val(""); 
-                        if(!data['isAdmin']){
-                            $(ip_id).html("该IP不可见");
-                        }
+                        //if(!data['isAdmin']){
+                        //    $(ip_id).html("该IP不可见");
+                        //}
                     }
                 }
             });
@@ -130,7 +132,7 @@ $(function(){
         var status_id = "#status" + id;
         var user_information_id = "#user_information" + id;
         var apply_id = '#apply' + id;
-        var ip_id = '#ip' + id;
+        //var ip_id = '#ip' + id;
         if($(information_id).val() && $(expiration_id).val()){
             var pk = $(this).attr("name");
             content = $(information_id).val();
@@ -160,12 +162,20 @@ $(function(){
                         $(user_information_id).html(data["user"] + '<a href="#" data-toggle="modal" data-target="#detail' + id +'"><span class="glyphicon glyphicon-search"></span></a>');
                         $(apply_id).html("该点位暂不能申请");
                         $(expiration_id+"_web").html(data["expiration"]);
+                        var timestamp = new Date(Date.parse(data["expiration"].replace(/-/g,"/")));
+                        var dateNow = new Date();
+                        if (dateNow > timestamp){
+                            $(expiration_id+"_web").css("color", 'red');
+                        } else if (dateNow > (timestamp - 1000 * 60 * 60 * 24 * 7) && dateNow <= timestamp) {
+                            $(expiration_id+"_web").css("color", 'DarkGoldenRod');
+                        }
                         $(detail_id+" .modal-body").html(
                             '<p>使用者：'+data['user']+'</p>\
+                            <p>管理员：'+data['admin']+'</p>\
                             <p>设备信息：</p>\
                             <pre>'+data['information']+'</pre>'
                         );
-                        $(ip_id).html(data['ip']);
+                        //$(ip_id).html(data['ip']);
                     };
                     $(submit_id).modal('hide');
                 }
@@ -181,20 +191,25 @@ $(function(){
     });
 
     // 下拉框筛选用dataTable搜索栏实现
+    var search_info = new Array(); 
+
+    // 对应search_info[0]，主要是快速筛选点位位置
     $("#select-location").change(function(){
         var location = $(this).children('option:selected').val();
         var table = $('#table_id_index').DataTable();
         if (location != "0"){
-            table.search($(this).children('option:selected').text()).draw();
+            search_info[0] = $(this).children('option:selected').text();
+            table.search(search_info.join('')).draw();
         }else{
-            table.search('').draw();
+            search_info[0] = ''
+            table.search(search_info.join('')).draw();
         }
     });
 
     // 过期时间的提醒的前端实现
     function over_time(){
         var table = $('#table_id_index').DataTable();
-        var timed = table.cells('.timed').nodes();  // 所有class='timed'的节
+        var timed = table.cells('.timed').nodes();  // 所有class='timed'的节点
         var dateNow = new Date();
         for (var i=0,len=timed.length;i<len;i++){
             if(timed[i].innerHTML == '暂无'){
@@ -202,13 +217,34 @@ $(function(){
             } else {
                 timestamp = new Date(timed[i].innerHTML).getTime();
                 if (dateNow > timestamp){
-                    timed[i].style.backgroundColor = 'red';
+                    timed[i].style.color = 'red';
                 } else if (dateNow > (timestamp - 1000 * 60 * 60 * 24 * 7) && dateNow <= timestamp) {
-                    timed[i].style.backgroundColor = 'yellow';
+                    timed[i].style.color = 'DarkGoldenRod';
                 }
             }
         }
     }
 
     over_time();
+
+    // 每隔10分钟向后台请求设备的连接状况
+    function ping(){
+        $.ajax({
+            url : "/Stable/ping/",
+            type :"GET",
+            dataTyoe: "json",
+            success : function(data){
+                var data = JSON.parse(data);
+                var table = $('#table_id_index').DataTable();
+                var ips = table.cells('.ip').nodes();
+                for (var i=0;i<ips.length;i++){
+                    if (data[ips[i].children[0].innerHTML]) {
+                        ips[i].children[1].style.backgroundColor = "#00FF00";
+                    }
+                }
+            },
+        })
+    }
+    ping();
+    setInterval('ping()', 1000*60*10);
 })
