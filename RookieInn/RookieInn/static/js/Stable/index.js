@@ -1,10 +1,16 @@
+// 需要注意的四点状态改变
+// 1.申请提交
+// 2.取消，拒绝待批准点位
+// 3.取消使用中的点位
+// 4.同意待批准的点位
+
+
 $(function(){
 
     // 管理员批准点位申请
     $("body").on('click', '.approve', function () {
         var id = $(this).attr("data-id");
         var status_id = "#status" + id;
-        var badge_number = parseInt($('#badge').text());
         if(confirm("确定批准该点位请求吗？")==true){
             var pk = $(this).attr("name");
             $.ajax({
@@ -17,9 +23,21 @@ $(function(){
                 success:function(data){
                     var data = JSON.parse(data);
                     if (!data["error"]){
+                        // 表格、模态框变化
                         $(status_id).html(data["status"]+'<a href="#" class="delete" data-id='+id+' name='+pk+'><span class="glyphicon glyphicon-remove"></span></a>');
                         $(status_id).css('background-color', 'rgb(255, 78, 78)');
+
+                        // 待批准数量
+                        var badge_number = parseInt($('#badge').text());
                         $('#badge').html(badge_number-1);
+
+                        // 我的设备和待批设备数量（只对管理员有效）
+                        if (data['isChangeDevicesNum']){
+                            var using_devices_num = parseInt($("#using_devices_num").text());
+                            var waiting_permit_devices_num = parseInt($("#waiting_permit_devices_num").text());
+                            $("#using_devices_num").html(using_devices_num +1);
+                            $("#waiting_permit_devices_num").html(waiting_permit_devices_num-1);
+                        }
                     }
                 }
             });
@@ -37,8 +55,7 @@ $(function(){
         var user_information_id = "#user_information" + id;
         var apply_id = '#apply' + id;
         var submit_id = "#submit" + id;
-        var badge_number = parseInt($('#badge').text());
-        var ip_id = "#ip" + id;
+        var device_information_id = "device_information" + id;
         if(confirm("确定取消申请吗？")==true){
             var pk = $(this).attr("name");
             $.ajax({
@@ -51,12 +68,25 @@ $(function(){
                 success:function(data){
                     var data = JSON.parse(data);
                     if (!data["error"]){
+                        // 待批准数量（管理员可见）
+                        if (data['isAdmin']){
+                            var badge_number = parseInt($('#badge').text());
+                            $('#badge').html(badge_number-1);
+                        }
+
+                        // 下拉框待批设备数量
+                        if (data['isChangeDevicesNum']) {
+                            var waiting_permit_devices_num = parseInt($("#waiting_permit_devices_num").text());
+                            $("#waiting_permit_devices_num").html(waiting_permit_devices_num-1);                            
+                        }
+
+                        // 表格、模态框变化
                         $(status_id).html(data["status"]);
                         $(status_id).css('background-color', 'rgb(79, 204, 79)');
                         $(user_information_id).html("无");
+                        $(device_information_id).html("");
                         $(expiration_id + '_web').html("暂无");
                         $(expiration_id + '_web').css("color", 'black');
-                        $('#badge').html(badge_number-1);
                         $(apply_id).html(
                             '<a href="#" data-toggle="modal" data-target="#submit'+id+'">\
                                 <button type="button" class="btn btn-warning">申请</button>\
@@ -64,11 +94,6 @@ $(function(){
                         );
                         $(submit_id+" textarea").val("");
                         $(expiration_id).val("");
-                        if(!data['isAdmin']){
-                            $(ip_id).html("该IP不可见");
-                        } else {
-                            $(ip_id).html(data['ip']);
-                        }
                     }
                 }
             });
@@ -84,9 +109,9 @@ $(function(){
         var status_id = "#status" + id;
         var expiration_id = "#expiration" + id;
         var user_information_id = "#user_information" + id;
+        var device_information_id = "device_information" + id;
         var apply_id = '#apply' + id;
         var submit_id = "#submit" + id;
-        //var ip_id = "#ip" + id;
         if(confirm("确定删除该点位的使用信息并使该点位置为未使用吗？")==true){
             var pk = $(this).attr("name");
             $.ajax({
@@ -99,9 +124,17 @@ $(function(){
                 success:function(data){
                     var data = JSON.parse(data);
                     if (!data["error"]){
+                        // 下拉框我的设备数量变化
+                        if (data['isChangeDevicesNum']){
+                            var using_devices_num = parseInt($("#using_devices_num").text());
+                            $("#using_devices_num").html(using_devices_num -1);
+                        }                        
+
+                        // 表格、模态框变化
                         $(status_id).html(data["status"]);
                         $(status_id).css('background-color', 'rgb(79, 204, 79)');
                         $(user_information_id).html("无");
+                        $(device_information_id).html("无");
                         $(apply_id).html(
                             '<a href="#" data-toggle="modal" data-target="#submit'+id+'">\
                                 <button type="button" class="btn btn-warning">申请</button>\
@@ -110,9 +143,7 @@ $(function(){
                         $(expiration_id + '_web').html("暂无");
                         $(expiration_id + '_web').css("color", 'black');
                         $(submit_id+" textarea").val(""); 
-                        //if(!data['isAdmin']){
-                        //    $(ip_id).html("该IP不可见");
-                        //}
+                        $(expiration_id).val("");
                     }
                 }
             });
@@ -132,7 +163,6 @@ $(function(){
         var status_id = "#status" + id;
         var user_information_id = "#user_information" + id;
         var apply_id = '#apply' + id;
-        //var ip_id = '#ip' + id;
         if($(information_id).val() && $(expiration_id).val()){
             var pk = $(this).attr("name");
             content = $(information_id).val();
@@ -149,11 +179,17 @@ $(function(){
                 success:function(data){
                     var data = JSON.parse(data);
                     if (!data["error"]){
+                        
+                        // 下拉框待批设备数量变化
+                        var waiting_permit_devices_num = parseInt($("#waiting_permit_devices_num").text());
+                        $("#waiting_permit_devices_num").html(waiting_permit_devices_num+1);    
 
                         if (data['isAdmin']){
-                            $(status_id).html(data["status"] + '<a href="#" class="approve" data-id='+id+' name='+pk+'><span class="glyphicon glyphicon-ok"></span></a>   <a href="#" data-id='+id+' class="reject" name='+pk+'><span class="glyphicon glyphicon-remove" style="color: red"></span></a>');
+                            // 待批准数量变化
                             var badge_number = parseInt($('#badge').text());
                             $('#badge').html(badge_number+1);
+                            // 表格、模态框状态变化
+                            $(status_id).html(data["status"] + '<a href="#" class="approve" data-id='+id+' name='+pk+'><span class="glyphicon glyphicon-ok"></span></a>   <a href="#" data-id='+id+' class="reject" name='+pk+'><span class="glyphicon glyphicon-remove" style="color: red"></span></a>');     
                         }else{
                             $(status_id).html(data["status"] + '<a href="#" data-id='+id+' class="reject_user" name='+pk+'><span class="glyphicon glyphicon-remove" style="color: red"></span></a>');
                         };
@@ -175,7 +211,6 @@ $(function(){
                             <p>设备信息：</p>\
                             <pre>'+data['information']+'</pre>'
                         );
-                        //$(ip_id).html(data['ip']);
                     };
                     $(submit_id).modal('hide');
                 }

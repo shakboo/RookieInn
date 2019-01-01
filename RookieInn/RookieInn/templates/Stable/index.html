@@ -26,7 +26,7 @@
         <tr>
             <th class="text-center">IP</th>
             <th class="text-center">位置</th>
-            <th class="text-center">状态 <span class="badge" id="badge">{{ devices_in_loading }}</span></th>
+            <th class="text-center">状态 {% if user.isAdminStable %}<span class="badge" id="badge">{{ devices_in_loading }}</span>{% endif %}</th>
             <th class="text-center">过期时间</th>
             <th class="text-center">使用信息</th>
             <th class="text-center">申请使用</th>
@@ -123,7 +123,7 @@
             </td>
 
             <!--隐藏信息-->
-            <td style="display: none">{{ device.information }}</td>
+            <td style="display: none" id="device_information">{{ device.information }}</td>
         </tr>
 
         <!--使用情况模态框-->

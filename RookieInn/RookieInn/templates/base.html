@@ -1,3 +1,5 @@
+{% load tags %}
+
 <html lang="zh-cn">
 <head>
     <meta charset="utf-8">
@@ -36,7 +38,17 @@
                 <li><a href="{% url 'logout' %}?next={{ request.path }}"><span class="glyphicon glyphicon-hand-right"></span> 注销登录</a></li>
                 <li><a href="{% url 'password_change' %}?next={{ request.path }}"><span class="glyphicon glyphicon-hand-right"></span> 修改密码</a></li>
                 {% if user.is_authenticated %}
-                <li><a href="#"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ user.nickname }}</a></li>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" href="#" id="dropdownMenuUser" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ user.nickname }}<span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuUser">
+                        <li><a href="#">我的设备 <span id="using_devices_num">{% my_devices user.nickname %}</span></a></li>
+                        <li><a href="#">待批设备 <span id="waiting_permit_devices_num">{% my_waiting_permit_devices user.nickname %}</span></a></li>
+                        <li role="separator" class="divider"></li>
+                    </ul>
+                </li>
+                <!--<li><a href="#"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ user.nickname }}</a></li>-->
                 {% endif %}
             </ul>
         </div>

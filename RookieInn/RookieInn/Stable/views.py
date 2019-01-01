@@ -27,7 +27,7 @@ def index(request):
 # 未使用->待批准
 def submit(request):
     if request.is_ajax() and request.method == "POST":
-        ret = {'status':'', 'error':1, 'user':'', 'information':'','isAdmin':'','ip':'','expiration':'','admin':''}
+        ret = {'status':'', 'error':1, 'user':'', 'information':'','isAdmin':'','expiration':'','admin':''}
         pk = request.POST.get("pk")
         information = request.POST.get("content")
         expiration = request.POST.get("expiration")
@@ -60,7 +60,7 @@ def submit(request):
 def approve(request):
     if request.is_ajax() and request.method == "POST":
         pk = request.POST.get("pk")
-        ret = {'error':1, 'status':''}
+        ret = {'error':1, 'status':'', 'isChangeDevicesNum':0}
         device = get_object_or_404(Device, pk=pk)
         if device.status == '待批准':
             ret['error'] = 0
@@ -73,6 +73,11 @@ def approve(request):
             messages.warning(request, "操作失败，该点位已经被批准或者用户取消了申请")
             return HttpResponseRedirect(reverse('Stable:index'))
         ret['status'] = device.status
+        
+        # 批准者和点位申请者是同一人，需要局部刷新该用户下拉框的设备数量
+        if device.user == request.user.nickname:
+            ret['isChangeDevicesNum'] = 1
+
         return HttpResponse(json.dumps(ret))
     else:
         return HttpResponseRedirect(reverse('Stable:index'))
@@ -80,10 +85,13 @@ def approve(request):
 # 使用中->未使用 and 待批准->未使用
 def delete(request):
     if request.is_ajax() and request.method == "POST":
-        ret = {'error':1, 'status':'', 'isAdmin':'', 'ip':''}
+        ret = {'error':1, 'status':'', 'isAdmin':'', 'isChangeDevicesNum':0}
         pk = request.POST.get("pk")
         device = get_object_or_404(Device, pk=pk)
         if request.user.nickname == device.user or request.user.isAdminStable:
+            # 批准者和点位申请者是同一人，需要局部刷新该用户下拉框的设备数量
+            if device.user == request.user.nickname:
+                ret['isChangeDevicesNum'] = 1
             ret['error'] = 0
             device.status = '未使用'
             device.information = ''
