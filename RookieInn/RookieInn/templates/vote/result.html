@@ -48,25 +48,6 @@
 </table>
 <p class="text-center"><a type="button" class="btn btn-default" href="{% url 'vote:index' %}">点击返回</a></p>
 
-{% else %}
-<table class="table table-striped">
-  <caption class="h4 text-center">公告确认</caption>
-  <thead>
-    <tr>
-      <th class="text-center">确认人</th>
-      <th class="text-center">公告</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for choice in question.choice_set.all %}
-      <tr>
-          <td class="text-center" width="40%">{{ choice.whoVote }}</td>
-          <td class="text-center" width="60%">{{ choice.choiceText }}</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
-<p class="text-center"><a type="button" class="btn btn-default" href="{% url 'vote:index' %}">点击返回</a></p>
 {% endif %}
 
 {% endblock %}

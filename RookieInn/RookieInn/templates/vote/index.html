@@ -7,7 +7,9 @@
 {% endblock %}
 
 {% block main %}
-<div class="text-center"><a class="btn btn-primary" href="{% url 'vote:edit' %}">发起投票</a></div>
+<div class="text-center">
+  <a href="#" data-toggle="modal" data-target="#edit" type="button" class="btn btn-primary">发起投票</a>
+</div>
 
 <table class="table table-striped display" id="table_id_vote_index">
   <caption class="h4 text-center">投票列表</caption>
@@ -35,6 +37,48 @@
     {% endfor %}
   </tbody>
 </table>
+
+<!--投票编辑模态框-->
+<div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content" >
+        <div class="modal-header"> 
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="myModalLabel">编辑投票内容</h4>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal" action="{% url 'vote:edit' %}" method="post" autocomplete="off">
+                {% csrf_token %}
+                  <div class="container" id="choice_infromation_container"> 
+                      <div class="row form-group">
+                          <label class="control-label col-lg-1" for="name">标题</label>
+                          <div class="col-lg-5 col-md-6">
+                              <input class="form-control" name="title"  type="text"placeholder="请输入问题标题" required>
+                          </div>
+                      </div>
+                      <div class="row form-group">
+                          <label class="control-label col-lg-1">问卷方式</label>
+                          <div class="col-lg-5 col-md-6">
+                                  <input value="投票" name="voteChoose" required="required" checked="checked" type="radio">投票
+                                  <input value="问答" name="voteChoose" required="required" type="radio">问答
+                          </div>
+                      </div>
+                      <div class="row form-group">
+                          <label class="control-label col-lg-1">问题</label>
+                          <div class="col-lg-5 col-md-6 ">
+                              <textarea class="form-control" rows="3" placeholder="请输入问题内容" name="choiceText"></textarea>
+                          </div>
+                      </div>
+                  </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" id="add_choice" type="button">增加问题</button>
+                    <button class="btn btn-success" type="submit">提交</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                  </div>
+              </form>
+      </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -45,5 +89,20 @@
     },
     bSort : false,
   });
+
+  $('body').on('click', '#add_choice', function(){
+      choice_inforamtion = '<div class="row form-group"> \
+                          <label class="control-label col-lg-1"><a href="#" class="remove_choice"><span class="glyphicon glyphicon-remove" aria-hidden="true"></a></span>问题</label> \
+                          <div class="col-lg-5 col-md-6 "> \
+                              <textarea class="form-control" rows="3" placeholder="请输入问题内容" name="choiceText"></textarea> \
+                          </div> \
+                      </div>';
+        $("#choice_infromation_container").append(choice_inforamtion);
+  })
+
+  $('body').on('click', '.remove_choice', function(){
+    $(this).parent().parent().remove();
+  })
+
 </script>
 {% endblock %}

@@ -58,8 +58,8 @@ def register(request):
         form = RegisterForm(request.POST)
 
         if form.is_valid():
-            #form.save()
-
+            form.save()
+            '''
             # 创建用户时is_active为False，此时还不是有效用户
             cd = form.cleaned_data
             username, password, email, nickname = cd['username'], cd['password1'], cd['email'], cd['nickname']
@@ -77,7 +77,7 @@ def register(request):
             except Exception as e:
                 user.delete()
                 print e
-
+            '''
             if redirect_to:
                 return redirect(redirect_to)
             else:

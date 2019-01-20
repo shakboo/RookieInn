@@ -16,7 +16,6 @@ class Question(models.Model):
     CHOOSE_BOX = (
         (u'投票',u'投票'),
         (u'问答',u'问答'),
-        (u'公告',u'公告'),
     )
 
     choose = models.CharField('类型',max_length=15,choices=CHOOSE_BOX,default="投票")

@@ -11,4 +11,5 @@ urlpatterns = [
     url(r'^delete/$', views.delete, name='delete'),
     url(r'^log/$', views.log, name='log'),
     url(r'^ping/$', views.ping, name="ping"),
+    url(r'^abnormal/$', views.abnormal, name="abnormal"),
 ]

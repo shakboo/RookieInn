@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}<title>稳定性点位管理平台</title>{% endblock %}
+
+{% block webname %}
+<h1 class="navbar-brand" style="position:relative;bottom:3px"><a href="{% url 'Stable:index' %}" style="text-decoration:none"><font style="color:grey;font-size:180%">稳定性点位管理平台</font></a></h1>
+{% endblock %}
+
+{% block main %}
+<table class="table table-striped display" id="table_id_log">
+    <thead>
+        <tr>
+            <th class="text-center">日期</th>
+            <th class="text-center">提交者</th>
+            <th class="text-center">异常描述</th>
+            <th class="text-center">解决方案</th>
+            <th class="text-center">状态</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for abnormal in abnormals %}
+        <tr>
+            <td class="text-center" width="20%">{{ abnormal.date }}</td>
+            <td class="text-center" width="10%">{{ abnormal.handler }}</td>
+            <td class="not-center" width="30%">{{ abnormal.content }}</td>
+            <td class="not-center" width="30%">{{ abnormal.solution }}</td>
+            <td class="text-center" width="10%">{{ abnormal.status }}</td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('#table_id_log').dataTable({
+    language:{
+        "sLengthMenu" : "每页 _MENU_ 条",    
+        'sSearch' : '搜索：',
+        "oPaginate": {    
+		"sFirst" : "第一页",    
+		"sPrevious" : "上一页",    
+		"sNext" : "下一页",    
+		"sLast" : "最后一页"    
+	    },
+        "sInfo" : "从 _START_ 到  _END_ 条记录 总记录数为 _TOTAL_ 条",  
+    },
+    aLengthMenu : [10, 20, 30], //更改显示记录数选项
+    bSort : false,
+});
+</script>
+{% endblock %}

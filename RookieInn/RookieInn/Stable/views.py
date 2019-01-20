@@ -4,9 +4,11 @@ from __future__ import unicode_literals
 from django.shortcuts import reverse, render, HttpResponseRedirect, get_object_or_404,HttpResponse
 import json
 import os, sys
-from .models import Device, Log
+from .models import Device, Log, Abnormal
 import logging
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
 
 logger = logging.getLogger('stable')
 
@@ -27,28 +29,63 @@ def index(request):
 # 未使用->待批准
 def submit(request):
     if request.is_ajax() and request.method == "POST":
-        ret = {'status':'', 'error':1, 'user':'', 'information':'','isAdmin':'','expiration':'','admin':''}
+        ret = {'status':'', 'error':1, 'user':'', 'information':'','isAdmin':'','expiration':'','admin':'', 'ip':'', 'ping':''}
         pk = request.POST.get("pk")
         information = request.POST.get("content")
         expiration = request.POST.get("expiration")
+        addip = request.POST.get("addip")
         device = get_object_or_404(Device, pk=pk)
+
+        if not device.ip and len(Device.objects.filter(ip=addip)):
+            ret['error'] = 1
+            return HttpResponse(json.dumps(ret))
+
+        # Linux 下
+        backinfo = os.system('ping -c 1 -w 1 {0}'.format(addip))
+        print backinfo
+        if str(backinfo) == "512":
+             ret['error'] = 3
+             return HttpResponse(json.dumps(ret))
+        if backinfo :
+            ret['ping'] = 0
+        else:
+            ret['ping'] = 1
+        # windows 下
+        '''addip_arr = '.'.split(addip)
+        if len(addip_arr) != 4:
+            ret['error'] = 3
+            return HttpResponse(json.dumps(ret))
+        for i in addip_arr:
+            if 0 <= int(i) <= 255:
+                pass
+            else:
+                ret['error'] = 3
+                return HttpResponse(json.dumps(ret))
+        backinfo = os.system('ping -n 1 -w 1 {0}'.format(addip))
+        if backinfo:
+            ret['ping'] = 0
+        else:
+            ret['ping'] = 1'''
+    
         if device.status == '未使用':
             ret['error'] = 0
             device.information = information
             device.expiration = expiration
             device.user = request.user.nickname
+            device.ip = addip if not device.ip else device.ip
             device.status = '待批准'
             device.save()
-            ret['user'] = device.user
-            ret['information'] = device.information
-            ret['expiration'] = device.expiration
-            ret['ip'] = device.ip
             info = '{0}申请{1}点位成功,待管理员批准\r'.format(request.user.nickname, device.location)
             logger.info(info)
             Log.objects.create(handler=request.user.nickname, content=info)
         else:
-            messages.warning(request, "操作失败，该点位已经被{0}申请使用".format(device.user))
-            return HttpResponseRedirect(reverse('Stable:index'))
+            ret['error'] = 2
+            return HttpResponse(json.dumps(ret))
+    
+        ret['user'] = device.user
+        ret['information'] = device.information
+        ret['expiration'] = device.expiration
+        ret['ip'] = device.ip
         ret['isAdmin'] = request.user.isAdminStable
         ret['status'] = device.status
         ret['admin'] = device.admin
@@ -70,8 +107,8 @@ def approve(request):
             logger.info(info)
             Log.objects.create(handler=request.user.nickname, content=info)
         else:
-            messages.warning(request, "操作失败，该点位已经被批准或者用户取消了申请")
-            return HttpResponseRedirect(reverse('Stable:index'))
+            ret['error'] = 1
+            return HttpResponse(json.dumps(ret))
         ret['status'] = device.status
         
         # 批准者和点位申请者是同一人，需要局部刷新该用户下拉框的设备数量
@@ -89,6 +126,11 @@ def delete(request):
         pk = request.POST.get("pk")
         device = get_object_or_404(Device, pk=pk)
         if request.user.nickname == device.user or request.user.isAdminStable:
+
+            if request.user.nickname != device.user:
+                ret['error'] = 2
+                return HttpResponse(json.dumps(ret))
+
             # 批准者和点位申请者是同一人，需要局部刷新该用户下拉框的设备数量
             if device.user == request.user.nickname:
                 ret['isChangeDevicesNum'] = 1
@@ -101,11 +143,9 @@ def delete(request):
             logger.info(info)
             Log.objects.create(handler=request.user.nickname, content=info)
         elif not device.user:
-            messages.warning(request, "操作失败，该点位已经处于未使用状态了")
-            return HttpResponseRedirect(reverse('Stable:index'))
-        else:
-            messages.warning(request, "操作失败，该点位已经被{0}申请使用".format(device.user))
-            return HttpResponseRedirect(reverse('Stable:index'))
+            ret['error'] = 1
+            return HttpResponse(json.dumps(ret))
+
         ret['isAdmin'] = request.user.isAdminStable
         ret['status'] = device.status
         ret['ip'] = device.ip
@@ -122,22 +162,45 @@ def log(request):
 
 # 后台ping设备
 def ping(request):
+    import time
     devices = Device.objects.all()
     all_ip  =  [device.ip for device in devices]
     if request.is_ajax() and request.method == "GET":
+        messages.info(request, "正在判断设备的连接状态...")
         ret =  {}
         # linux下用这个
         for ip in all_ip:
+            if not ip:
+                continue
             backinfo = os.system('ping -c 1 -w 1 {0}'.format(ip))
-            if ' 0 reveived' in str(backinfo):
+            print backinfo
+            if int(backinfo) :
                 ret[ip] = 0
             else:
                 ret[ip] = 1
+        
         # windows下
-        '''for ip in all_ip:
+        '''
+        for ip in all_ip:
+            if not ip:
+                continue
             backinfo = os.system('ping -n 1 -w 1 {0}'.format(ip))
             if backinfo:
                 ret[ip] = 0
             else:
-                ret[ip] = 1'''
+                ret[ip] = 1
+        '''
         return HttpResponse(json.dumps(ret))
+
+# 异常解决进度页面
+def abnormal(request):
+    if request.is_ajax() and request.method == "POST":
+        ret={}
+        information = request.POST.get("information")
+        Abnormal.objects.create(handler=request.user.nickname, content=information)
+        return HttpResponse(json.dumps(ret))
+    else:
+        abnormals = Abnormal.objects.all()
+        return render(request, 'Stable/abnormal.html', context={
+            'abnormals' : abnormals,
+        })

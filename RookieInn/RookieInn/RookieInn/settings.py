@@ -199,8 +199,6 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 ALLOWED_HOSTS = ['*']
 
-MEDIA_ROOT = '/upload/'
-
 # 定时任务参数配置
 # 真是一个大坑windows下不能使用django_crontab
 CRONJOBS = (
@@ -216,3 +214,8 @@ EMAIL_PORT = 25
 EMAIL_HOST_USER = '910298576@qq.com'  # QQ邮箱测试，放到生产环境再填申请下来的内部邮箱 
 EMAIL_HOST_PASSWORD = 'sylcwgqdrqeebebd' # QQ邮箱测试，放到生产环境再填申请下来的内部邮箱 
 DEFAULT_FROM_EMAIL = '910298576@qq.com' # QQ邮箱测试，放到生产环境再填申请下来的内部邮箱 
+
+# 富文本框设置
+# 配置图片上传路径
+MEDIA_URL = '/upload/'
+MEDIA_ROOT = '/upload/'

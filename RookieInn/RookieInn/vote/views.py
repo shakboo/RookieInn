@@ -13,9 +13,9 @@ nextLine = os.linesep
 def index(request):
 	questionList = Question.objects.all().order_by('-created_time')
 	try:
-		username = str(request.user.nickname)
+		username = request.user.nickname
 	except:
-		username = str(request.user.username)
+		username = request.user.username
 	voteList = []
 	for question in questionList:
 		if question.alreadyVote.find(username) == -1:
@@ -43,18 +43,18 @@ def detail(request,pk):
 	else:
 		for selectedChoiceId in selectChoices:
 			selectChoice = question.choice_set.get(pk=selectedChoiceId)
-			if selectChoice.whoVote.find(str(request.user.nickname)) == -1:
+			if selectChoice.whoVote.find(request.user.nickname) == -1:
 				if question.choose == '投票' or question.choose == '公告':
 					selectChoice.choiceVote += 1
-					selectChoice.whoVote += str(request.user.nickname) + ' '
+					selectChoice.whoVote += request.user.nickname + ' '
 					selectChoice.save()
 				elif question.choose == "问答":
-					selectChoice.choiceAnswer += (request.POST[str(selectedChoiceId)] + " --" + str(request.user.nickname)) + nextLine
-					selectChoice.whoVote += str(request.user.nickname) + ' '
+					selectChoice.choiceAnswer += (request.POST[str(selectedChoiceId)] + " --" + request.user.nickname) + nextLine
+					selectChoice.whoVote += request.user.nickname + ' '
 					selectChoice.save()
 
-			if question.alreadyVote.find(str(request.user.nickname)) == -1:
-				question.alreadyVote += str(request.user.nickname) + ' '
+			if question.alreadyVote.find(request.user.nickname) == -1:
+				question.alreadyVote += request.user.nickname + ' '
 				question.save()
 
 	return HttpResponseRedirect(reverse('vote:index'))
@@ -65,15 +65,16 @@ def result(request, pk):
 			'question' : question,
 		})
 
+# 投票编辑
 def edit(request):
 	if request.POST:
 		question = QuestionForm()
 		question = question.save(commit=False)
-		question.author = str(request.user.nickname) if request.user.nickname else str(request.user.username)
+		question.author = request.user.nickname if request.user.nickname else request.user.username
 		question.title = request.POST['title']
 		question.choose = request.POST['voteChoose']
 		question.save()
-		choiceList = request.POST['choiceText'].split(nextLine) if question.choose == '公告' else request.POST.getlist("choiceText", "")
+		choiceList = request.POST.getlist("choiceText", "")
 		for choiceValue in choiceList:
 			choice = ChoiceForm()
 			choice = choice.save(commit=False)

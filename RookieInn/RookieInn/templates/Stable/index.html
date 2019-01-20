@@ -8,6 +8,14 @@
 
 {% block main %}
 
+{% if messages %} {% for message in messages %}
+<div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>提示：</strong> {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
 <form role="form">
     <div class="form-group" style="display: inline;">
       <label for="name" style="display: inline;">选择点位位置：</label>
@@ -18,9 +26,18 @@
       </select>
     </div>
     <a class="btn btn-warning" role="button" href="{% url 'Stable:log' %}">查看日志</a>
+    <div class="btn-group">
+        <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          异常处理 <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="#" data-toggle="modal" data-target="#abnormal">异常提交</a></li>
+          <li><a href="{% url 'Stable:abnormal' %}">处理进度</a></li>
+        </ul>
+      </div>
 </form>
 
-<table class="table table-striped display" id="table_id_index">
+<table class="table table-striped display" id="table_id_index" style="width:100%;">
 
     <thead>
         <tr>
@@ -31,17 +48,25 @@
             <th class="text-center">使用信息</th>
             <th class="text-center">申请使用</th>
             <!--以下隐藏信息是为了搜索的时候能用到-->
-            <th class="text-center" style="display: none">隐藏信息</th>
+            <th class="text-center" style="display: none">隐藏设备信息</th>
+            <th class="text-center" style="display: none">隐藏管理员信息</th>
+            <th class="text-center" style="display: none">隐藏使用者信息</th>
         </tr>
     </thead>
     <tbody>
         {% for device in devices %}
         <tr>
             <!--IP列-->
+            {% if device.ip %}
             <td class="text-center ip" width="15%">
-                <span>{{ device.ip }}</span>
+                <span id="ip{{ forloop.counter }}">{{ device.ip }}</span>
                 <i style="width:10px;height:10px;border-radius:50%;border-style: solid;border-width: thin;  background-color:red;display: inline-block"></i>
             </td>
+            {% else %}
+            <td class="text-center" width="15%">
+                <span id="ip{{ forloop.counter }}">该点位IP暂为空</span>
+            </td>
+            {% endif %}
             <!--{% if user.isAdminStable %}
             <td class="text-center" width="15%">{{ device.ip }}</td>
             {% else %}
@@ -94,9 +119,9 @@
 
             <!--过期时间列-->
             {% if device.status == '未使用' %}
-            <td class="text-center timed" width="15%" id="expiration{{ forloop.counter }}_web">暂无</td>
+            <td class="text-center timed" width="15%" id="expiration{{ forloop.counter }}">暂无</td>
             {% else %}
-            <td class="text-center timed" width="15%" id="expiration{{ forloop.counter }}_web">{{ device.expiration|date:"Y-m-d" }}</td>
+            <td class="text-center timed" width="15%" id="expiration{{ forloop.counter }}">{{ device.expiration|date:"Y-m-d" }}</td>
             {% endif %}
 
             <!--详细信息列-->
@@ -105,7 +130,7 @@
                     无
                 {% else %}
                     {{ device.user }}
-                    <a href="#" data-toggle="modal" data-target="#detail{{ forloop.counter }}">
+                    <a href="#" data-toggle="modal" data-target="#detail" class="information-btn" data-id="{{ forloop.counter }}">
                         <span class="glyphicon glyphicon-search"></span>
                     </a>
                 {% endif %}
@@ -114,75 +139,105 @@
             <!--申请列-->
             <td class="text-center" width="15%" id="apply{{ forloop.counter }}">
                     {% if device.status == '未使用' %}
-                    <a href="#" data-toggle="modal" data-target="#submit{{ forloop.counter }}">
-                        <button type="button" class="btn btn-warning">申请</button>
+                    <a href="#" data-toggle="modal" data-target="#submit">
+                        <button type="button" class="btn btn-warning submit-btn" data-id="{{ forloop.counter }}">申请</button>
                     </a>
                     {% else %}
                     该点位暂不能申请
                     {% endif %}
             </td>
 
-            <!--隐藏信息-->
-            <td style="display: none" id="device_information">{{ device.information }}</td>
+            <!--隐藏信息， 可供搜索栏查询的信息-->
+            <td style="display: none" id="device_information{{ forloop.counter }}">{{ device.information }}</td>
+            <td style="display: none" id="device_admin{{ forloop.counter }}">{{ device.admin }}</td>
+            <td style="display: none" id="device_user{{ forloop.counter }}">{{ device.user }}</td>
         </tr>
-
-        <!--使用情况模态框-->
-        <div class="modal fade" id="detail{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                      <h4 class="modal-title" id="myModalLabel">设备信息</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>使用者：{{ device.user }}</p>
-                        <p>管理员: {{ device.admin }}</p>
-                        <p>设备信息：</p>
-                        <pre>{{ device.information }}</pre>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    </div>
-                  </div>
-                </div>
-        </div>
-
-        <!--申请提交模态框-->
-        <div class="modal fade" id="submit{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                      <h4 class="modal-title" id="myModalLabel">申请信息</h4>
-                    </div>
-                    <div class="modal-body">
-                        <form class="form">
-                            {% csrf_token %}
-                            <div>
-                                <label>到期时间：</label>
-                                <input type="text" class="expiration form-control" style="width: 30%;display: inline;" id="expiration{{ forloop.counter }}" value="" readonly>
-                            </div><br>
-                            <div>
-                                <label>设备信息：</label>
-                                <textarea class="form-control" placeholder="请输入设备信息" name="information" id="information{{ forloop.counter }}"></textarea>
-                            </div>
-                                <div class="modal-footer">
-                                <button type="button" class="btn btn-primary application" data-id="{{ forloop.counter }}" name="{{ device.id }}">申请</button>
-                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                            </div>
-                        </form>
-                    </div>
-                  </div>
-                </div>
-        </div>
+        <!--隐藏信息， 不可供搜索栏查询的信息-->
+        <input type="hiddne" id="device_pk{{ forloop.counter }}" value="" name="{{ device.id }}" disabled style="display:none;">
         {% endfor %}
   </tbody>
 </table>
+
+<!--申请提交模态框-->
+<div class="modal fade" id="submit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="myModalLabel">申请信息</h4>
+        </div>
+        <div class="modal-body">
+            <form class="form" autocomplete="off">
+                {% csrf_token %}
+                <div>
+                    <label>设备ip：</label>
+                    <input type="text" class="addip form-control" style="width: 30%;display: inline;" id="addip" value="">
+                </div>
+                <br>                   
+                <div>
+                    <label>到期时间：</label>
+                    <input type="text" class="expiration form-control" style="width: 30%;display: inline;" id="expiration" value="" readonly>
+                </div><br>
+                <div>
+                    <label>设备信息：</label>
+                    <textarea class="form-control" placeholder="请输入设备信息" name="information" id="information"></textarea>
+                </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-primary application" data-id="" id="pk" name="">申请</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!--使用情况模态框-->
+<div class="modal fade" id="detail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="myModalLabel">设备信息</h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+          </div>
+        </div>
+</div>
+
+<!--异常提交模态框-->
+<div class="modal fade" id="abnormal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" z-index="600">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="myModalLabel">异常信息</h4>
+        </div>
+        <div class="modal-body">
+            <form class="form" autocomplete="off">
+                {% csrf_token %}
+                <div>
+                    <label>异常描述：</label>
+                    <textarea class="form-control" id="abnormal-information"></textarea>
+                </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="abnormal-submit">提交</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script type="text/javascript" src="/static/js/Stable/index.js"></script>
-<script type="text/javascript" src="/static/js/Stable/ping.js"></script>
 <script>
 $('#table_id_index').dataTable({
     language:{
@@ -197,9 +252,9 @@ $('#table_id_index').dataTable({
         "sInfo" : "从 _START_ 到  _END_ 条记录 总记录数为 _TOTAL_ 条",  
     },
     aLengthMenu : [10, 30, 50], //更改显示记录数选项
-    bSort : false,
+    bSort : false,            //禁止默认排序
+    pageLength: 15,           //默认每页条数
 });
-
 
 $.fn.datetimepicker.dates['zh-CN'] = {
 			days: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"],
@@ -223,5 +278,8 @@ $('.expiration').datetimepicker({
     startDate: new Date((new Date()).getTime() + 24*60*60*1000),
     endDate: new Date((new Date()).getTime() + 24*60*60*1000*365)
 });
+
+
+
 </script>
-{% endblock %}  
+{% endblock %}
