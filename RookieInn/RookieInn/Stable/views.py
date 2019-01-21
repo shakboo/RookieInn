@@ -11,7 +11,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 logger = logging.getLogger('stable')
-
+platform = sys.platform
 # Create your views here.
 
 # 主页
@@ -40,18 +40,9 @@ def submit(request):
             ret['error'] = 1
             return HttpResponse(json.dumps(ret))
 
-        # Linux 下
-        backinfo = os.system('ping -c 1 -w 1 {0}'.format(addip))
-        print backinfo
-        if str(backinfo) == "512":
-             ret['error'] = 3
-             return HttpResponse(json.dumps(ret))
-        if backinfo :
-            ret['ping'] = 0
-        else:
-            ret['ping'] = 1
-        # windows 下
-        '''addip_arr = '.'.split(addip)
+        print addip
+        addip_arr = addip.split('.')
+        print addip_arr
         if len(addip_arr) != 4:
             ret['error'] = 3
             return HttpResponse(json.dumps(ret))
@@ -61,11 +52,28 @@ def submit(request):
             else:
                 ret['error'] = 3
                 return HttpResponse(json.dumps(ret))
-        backinfo = os.system('ping -n 1 -w 1 {0}'.format(addip))
-        if backinfo:
-            ret['ping'] = 0
+
+        # Linux 下
+        global platform
+        if str(platform) != "win32":
+            print 1
+            backinfo = os.system('ping -c 1 -w 1 {0}'.format(addip))
+            if str(backinfo) == "512":
+                ret['error'] = 3
+                return HttpResponse(json.dumps(ret))
+            if backinfo :
+                ret['ping'] = 0
+            else:
+                ret['ping'] = 1
+
+        # windows 下
         else:
-            ret['ping'] = 1'''
+            print 2
+            backinfo = os.system('ping -n 1 -w 1 {0}'.format(addip))
+            if backinfo:
+                ret['ping'] = 0
+            else:
+                ret['ping'] = 1
     
         if device.status == '未使用':
             ret['error'] = 0
@@ -162,34 +170,34 @@ def log(request):
 
 # 后台ping设备
 def ping(request):
-    import time
     devices = Device.objects.all()
     all_ip  =  [device.ip for device in devices]
     if request.is_ajax() and request.method == "GET":
-        messages.info(request, "正在判断设备的连接状态...")
         ret =  {}
         # linux下用这个
-        for ip in all_ip:
-            if not ip:
-                continue
-            backinfo = os.system('ping -c 1 -w 1 {0}'.format(ip))
-            print backinfo
-            if int(backinfo) :
-                ret[ip] = 0
-            else:
-                ret[ip] = 1
+        global platform
+        if str(platform) != "win32":
+            for ip in all_ip:
+                if not ip:
+                    continue
+                backinfo = os.system('ping -c 1 -w 1 {0}'.format(ip))
+                print backinfo
+                if int(backinfo) :
+                    ret[ip] = 0
+                else:
+                    ret[ip] = 1
         
         # windows下
-        '''
-        for ip in all_ip:
-            if not ip:
-                continue
-            backinfo = os.system('ping -n 1 -w 1 {0}'.format(ip))
-            if backinfo:
-                ret[ip] = 0
-            else:
-                ret[ip] = 1
-        '''
+        else:
+            for ip in all_ip:
+                if not ip:
+                    continue
+                backinfo = os.system('ping -n 1 -w 1 {0}'.format(ip))
+                if backinfo:
+                    ret[ip] = 0
+                else:
+                    ret[ip] = 1
+        
         return HttpResponse(json.dumps(ret))
 
 # 异常解决进度页面

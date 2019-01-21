@@ -32,6 +32,7 @@ $(function(){
         var ip_id = "#ip" + id;
         if ($(ip_id).text() == '该点位IP暂为空') {
             $("#addip").val("");
+            $("#addip").removeAttr('disabled');
         }else{
             $("#addip").val($(ip_id).text());
             $("#addip").attr('disabled', 'disabled');
@@ -329,7 +330,7 @@ $(function(){
     // 下拉框筛选用dataTable搜索栏实现
     var search_info = new Array(); 
 
-    // 对应search_info[0]，主要是快速筛选点位位置
+    // 对应search_info[1]，主要是快速筛选点位位置
     $("#select-location").change(function(){
         var location = $(this).children('option:selected').val();
         var table = $('#table_id_index').DataTable();
