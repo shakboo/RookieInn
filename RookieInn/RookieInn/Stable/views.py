@@ -14,6 +14,26 @@ logger = logging.getLogger('stable')
 platform = sys.platform
 # Create your views here.
 
+def ping_single(ip):
+    ip_list= ip.split('.')
+    if len(ip_list) != 4:
+        return "error"
+    for i in ip_list:
+        if 0 <= int(i) <= 255:
+            pass
+        else:
+            return "error"
+    # Linux 下
+    global platform
+    if str(platform) != "win32":
+        backinfo = os.system('ping -c 1 -w 1 {0}'.format(ip))
+
+    # windows 下
+    else:
+        backinfo = os.system('ping -n 1 -w 1 {0}'.format(ip))
+
+    return backinfo
+
 # 主页
 def index(request):
     if request.method == 'POST':
@@ -40,40 +60,14 @@ def submit(request):
             ret['error'] = 1
             return HttpResponse(json.dumps(ret))
 
-        print addip
-        addip_arr = addip.split('.')
-        print addip_arr
-        if len(addip_arr) != 4:
+        backinfo = ping_single(addip)
+        if str(backinfo) == "512" or str(backinfo) == "error":
             ret['error'] = 3
             return HttpResponse(json.dumps(ret))
-        for i in addip_arr:
-            if 0 <= int(i) <= 255:
-                pass
-            else:
-                ret['error'] = 3
-                return HttpResponse(json.dumps(ret))
-
-        # Linux 下
-        global platform
-        if str(platform) != "win32":
-            print 1
-            backinfo = os.system('ping -c 1 -w 1 {0}'.format(addip))
-            if str(backinfo) == "512":
-                ret['error'] = 3
-                return HttpResponse(json.dumps(ret))
-            if backinfo :
-                ret['ping'] = 0
-            else:
-                ret['ping'] = 1
-
-        # windows 下
+        if backinfo :
+            ret['ping'] = 0
         else:
-            print 2
-            backinfo = os.system('ping -n 1 -w 1 {0}'.format(addip))
-            if backinfo:
-                ret['ping'] = 0
-            else:
-                ret['ping'] = 1
+            ret['ping'] = 1
     
         if device.status == '未使用':
             ret['error'] = 0
@@ -170,35 +164,31 @@ def log(request):
 
 # 后台ping设备
 def ping(request):
-    devices = Device.objects.all()
-    all_ip  =  [device.ip for device in devices]
+    ret =  {'error':''}
     if request.is_ajax() and request.method == "GET":
-        ret =  {}
-        # linux下用这个
-        global platform
-        if str(platform) != "win32":
-            for ip in all_ip:
-                if not ip:
-                    continue
-                backinfo = os.system('ping -c 1 -w 1 {0}'.format(ip))
-                print backinfo
-                if int(backinfo) :
-                    ret[ip] = 0
-                else:
-                    ret[ip] = 1
-        
-        # windows下
+        devices = Device.objects.all()
+        all_ip  =  [device.ip for device in devices]
+        for ip in all_ip:
+            if not ip:
+                continue
+            backinfo = ping_single(ip)
+            if backinfo :
+                ret[ip] = 0
+            else:
+                ret[ip] = 1
+    if request.is_ajax() and request.method == "POST":
+        ip = request.POST.get('ip')
+        backinfo = ping_single(ip)
+        if str(backinfo) == "512" or str(backinfo) == "error":
+            ret['error'] = 3
+            return HttpResponse(json.dumps(ret))
+        if backinfo and not len(Device.objects.filter(ip=ip)):
+            ret['ping'] = 0
         else:
-            for ip in all_ip:
-                if not ip:
-                    continue
-                backinfo = os.system('ping -n 1 -w 1 {0}'.format(ip))
-                if backinfo:
-                    ret[ip] = 0
-                else:
-                    ret[ip] = 1
+            ret['ping'] = 1
+    return HttpResponse(json.dumps(ret))
+
         
-        return HttpResponse(json.dumps(ret))
 
 # 异常解决进度页面
 def abnormal(request):

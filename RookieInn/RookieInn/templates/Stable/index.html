@@ -2,6 +2,10 @@
 
 {% block title %}<title>稳定性点位管理平台</title>{% endblock %}
 
+{% block link %}
+<link rel="stylesheet" href="/static/css/Stable/index.css">
+{% endblock %}
+
 {% block webname %}
 <h1 class="navbar-brand" style="position:relative;bottom:3px"><a href="{% url 'Stable:index' %}" style="text-decoration:none"><font style="color:grey;font-size:180%">稳定性点位管理平台</font></a></h1>
 {% endblock %}
@@ -21,147 +25,144 @@
 {% endfor %}
 {% endif %}
 
-<form role="form">
-    <div class="form-group" style="display: inline;">
-      <label for="name" style="display: inline;">选择点位位置：</label>
-      <select class="form-control" style="width: 20%;display: inline;" id="select-location">
-        <option value="0">全部</option>
-        <option value="1">B3楼顶园区方向</option>
-        <option value="2">B3楼顶群乐方向</option>
-      </select>
-    </div>
-    <a class="btn btn-warning" role="button" href="{% url 'Stable:log' %}">查看日志</a>
-    <div class="btn-group">
-        <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          异常处理 <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          <li><a href="#" data-toggle="modal" data-target="#abnormal">异常提交</a></li>
-          <li><a href="{% url 'Stable:abnormal' %}">处理进度</a></li>
-        </ul>
-      </div>
-</form>
 
-<table class="table table-striped display" id="table_id_index" style="width:100%;">
 
-    <thead>
-        <tr>
-            <th class="text-center">IP</th>
-            <th class="text-center">位置</th>
-            <th class="text-center">状态 {% if user.isAdminStable %}<span class="badge" id="badge">{{ devices_in_loading }}</span>{% endif %}</th>
-            <th class="text-center">过期时间</th>
-            <th class="text-center">使用信息</th>
-            <th class="text-center">申请使用</th>
-            <!--以下隐藏信息是为了搜索的时候能用到-->
-            <th class="text-center" style="display: none">隐藏设备信息</th>
-            <th class="text-center" style="display: none">隐藏管理员信息</th>
-            <th class="text-center" style="display: none">隐藏使用者信息</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for device in devices %}
-        <tr>
-            <!--IP列-->
-            {% if device.ip %}
-            <td class="text-center ip" width="15%">
-                <span id="ip{{ forloop.counter }}">{{ device.ip }}</span>
-                <i style="width:10px;height:10px;border-radius:50%;border-style: solid;border-width: thin;  background-color:red;display: inline-block"></i>
-            </td>
-            {% else %}
-            <td class="text-center" width="15%">
-                <span id="ip{{ forloop.counter }}">该点位IP暂为空</span>
-            </td>
-            {% endif %}
-            <!--{% if user.isAdminStable %}
-            <td class="text-center" width="15%">{{ device.ip }}</td>
-            {% else %}
-            <td class="text-center" width="15%" id="ip{{ forloop.counter }}">
-                    {% if device.user == user.nickname and device.status == '未批准' %}
-                    {{ device.ip }}
-                    {% elif device.user == user.nickname and device.status == '使用中' %}
-                    {{ device.ip }} 
-                    {% else %}
-                    该IP不可见
-                    {% endif %}
-            </td>
-            {% endif %}-->            
 
-            <!--位置列-->
-            <td class="text-center location" width="15%">{{ device.location }}</td>
+<div class="container-fluid">
+    <div class="row">
+        <!--这里留个位置，之后可以拓展侧边栏-->
+        <div class="col-md-12">
+            <form role="form">
+                <div class="form-group" style="display: inline;">
+                    <label for="name" style="display: inline;">选择点位位置：</label>
+                    <select class="form-control" style="width: 20%;display: inline;" id="select-location">
+                    <option value="0">全部</option>
+                    <option value="1">B3楼顶园区方向</option>
+                    <option value="2">B3楼顶群乐方向</option>
+                    </select>
+                </div>
+                <a class="btn btn-warning" role="button" href="{% url 'Stable:log' %}">查看日志</a>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        异常处理 <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" data-toggle="modal" data-target="#abnormal-location" id="open-abnormal-location">异常点位 <span class="badge" id="abnormal-location-number" style="background-color: red;display: none;"></span></a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#" data-toggle="modal" data-target="#abnormal">异常提交</a></li>
+                        <li><a href="{% url 'Stable:abnormal' %}">处理进度</a></li>
+                    </ul>
+                    </div>
+            </form>
+            <table class="table table-striped display table-bordered" id="table_id_index" style="width:100%;">
 
-            <!--状态列-->
-            {% if device.status == '使用中' %}
-            <td class="text-center" width="15%" id="status{{ forloop.counter }}" style="background-color: rgb(255, 78, 78);">
-            {% elif device.status == '未使用' %}
-            <td class="text-center" width="15%" id="status{{ forloop.counter }}" style="background-color: rgb(79, 204, 79);">
-            {% else %}
-            <td class="text-center" width="15%" id="status{{ forloop.counter }}" style="background-color: yellow;">
-            {% endif %}
-            {% if user.isAdminStable %}
-                {% if device.status == '待批准' %}                
-                    {{ device.status }}<a href="#" class="approve" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-ok"></span></a>   <a href="#" class="reject" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
-                {% elif device.status == '使用中' %}
-                    {{ device.status }}<a href="#" class="delete" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove"></span></a>
-                {% else %}
-                    {{ device.status }}
-                {% endif %}
-            {% else %}
-                {% if device.status == '待批准' %}                
-                    {{ device.status }}
-                    {% if device.user == user.nickname %}
-                    <a href="#" class="reject" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
-                    {% endif %}
-                {% elif device.status == '使用中' %}
-                    {{ device.status }}
-                    {% if device.user == user.nickname %}
-                    <a href="#" class="delete" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove"></span></a>
-                    {% endif %}
-                {% else %}
-                    {{ device.status }}
-                {% endif %}            
-            {% endif %}
-            </td>
+                <thead>
+                    <tr>
+                        <th class="text-center">IP</th>
+                        <th class="text-center">位置</th>
+                        <th class="text-center">状态 {% if user.isAdminStable %}<span class="badge" id="badge">{{ devices_in_loading }}</span>{% endif %}</th>
+                        <th class="text-center">过期时间</th>
+                        <th class="text-center">使用信息</th>
+                        <th class="text-center">申请使用</th>
+                        <!--以下隐藏信息是为了搜索的时候能用到-->
+                        <th class="text-center" style="display: none">隐藏设备信息</th>
+                        <th class="text-center" style="display: none">隐藏管理员信息</th>
+                        <th class="text-center" style="display: none">隐藏使用者信息</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr>
+                        <!--IP列-->
+                        {% if device.ip %}
+                        <td class="text-center ip" width="15%">
+                            <span id="ip{{ forloop.counter }}">{{ device.ip }}</span>
+                            <i style="width:10px;height:10px;border-radius:50%;border-style: solid;border-width: thin;  background-color:red;display: inline-block"></i>
+                        </td>
+                        {% else %}
+                        <td class="text-center ip" width="15%">
+                            <span id="ip{{ forloop.counter }}">该点位IP暂为空</span>
+                        </td>
+                        {% endif %}       
+            
+                        <!--位置列-->
+                        <td class="text-center location" width="15%">{{ device.location }}</td>
+            
+                        <!--状态列-->
+                        {% if device.status == '使用中' %}
+                        <td class="text-center status" width="15%" id="status{{ forloop.counter }}" style="background-color: rgb(255, 78, 78);">
+                        {% elif device.status == '未使用' %}
+                        <td class="text-center status" width="15%" id="status{{ forloop.counter }}" style="background-color: rgb(79, 204, 79);">
+                        {% else %}
+                        <td class="text-center status" width="15%" id="status{{ forloop.counter }}" style="background-color: yellow;">
+                        {% endif %}
+                        {% if user.isAdminStable %}
+                            {% if device.status == '待批准' %}                
+                                {{ device.status }}<a href="#" class="approve" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-ok"></span></a>   <a href="#" class="reject" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
+                            {% elif device.status == '使用中' %}
+                                {{ device.status }}<a href="#" class="delete" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove"></span></a>
+                            {% else %}
+                                {{ device.status }}
+                            {% endif %}
+                        {% else %}
+                            {% if device.status == '待批准' %}                
+                                {{ device.status }}
+                                {% if device.user == user.nickname %}
+                                <a href="#" class="reject" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></a>
+                                {% endif %}
+                            {% elif device.status == '使用中' %}
+                                {{ device.status }}
+                                {% if device.user == user.nickname %}
+                                <a href="#" class="delete" data-id="{{ forloop.counter }}" name="{{ device.id }}"><span class="glyphicon glyphicon-remove"></span></a>
+                                {% endif %}
+                            {% else %}
+                                {{ device.status }}
+                            {% endif %}            
+                        {% endif %}
+                        </td>
+            
+                        <!--过期时间列-->
+                        {% if device.status == '未使用' %}
+                        <td class="text-center timed" width="15%" id="expiration{{ forloop.counter }}">暂无</td>
+                        {% else %}
+                        <td class="text-center timed" width="15%" id="expiration{{ forloop.counter }}">{{ device.expiration|date:"Y-m-d" }}</td>
+                        {% endif %}
+            
+                        <!--详细信息列-->
+                        <td class="text-center" width="15%" id="user_information{{ forloop.counter }}">
+                            {% if device.status == '未使用' %}
+                                无
+                            {% else %}
+                                {{ device.user }}
+                                <a href="#" data-toggle="modal" data-target="#detail" class="information-btn" data-id="{{ forloop.counter }}">
+                                    <span class="glyphicon glyphicon-search"></span>
+                                </a>
+                            {% endif %}
+                        </td>
+            
+                        <!--申请列-->
+                        <td class="text-center" width="15%" id="apply{{ forloop.counter }}">
+                                {% if device.status == '未使用' %}
+                                <a href="#" data-toggle="modal" data-target="#submit">
+                                    <button type="button" class="btn btn-warning submit-btn" data-id="{{ forloop.counter }}">申请</button>
+                                </a>
+                                {% else %}
+                                该点位暂不能申请
+                                {% endif %}
+                        </td>
+            
+                        <!--隐藏信息， 可供搜索栏查询的信息-->
+                        <td style="display: none" id="device_information{{ forloop.counter }}">{{ device.information }}</td>
+                        <td style="display: none" id="device_admin{{ forloop.counter }}">{{ device.admin }}</td>
+                        <td style="display: none" id="device_user{{ forloop.counter }}">{{ device.user }}</td>
+                    </tr>
+                    <!--隐藏信息， 不可供搜索栏查询的信息-->
+                    <input type="hiddne" id="device_pk{{ forloop.counter }}" value="" name="{{ device.id }}" disabled style="display:none;">
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            <!--过期时间列-->
-            {% if device.status == '未使用' %}
-            <td class="text-center timed" width="15%" id="expiration{{ forloop.counter }}">暂无</td>
-            {% else %}
-            <td class="text-center timed" width="15%" id="expiration{{ forloop.counter }}">{{ device.expiration|date:"Y-m-d" }}</td>
-            {% endif %}
-
-            <!--详细信息列-->
-            <td class="text-center" width="15%" id="user_information{{ forloop.counter }}">
-                {% if device.status == '未使用' %}
-                    无
-                {% else %}
-                    {{ device.user }}
-                    <a href="#" data-toggle="modal" data-target="#detail" class="information-btn" data-id="{{ forloop.counter }}">
-                        <span class="glyphicon glyphicon-search"></span>
-                    </a>
-                {% endif %}
-            </td>
-
-            <!--申请列-->
-            <td class="text-center" width="15%" id="apply{{ forloop.counter }}">
-                    {% if device.status == '未使用' %}
-                    <a href="#" data-toggle="modal" data-target="#submit">
-                        <button type="button" class="btn btn-warning submit-btn" data-id="{{ forloop.counter }}">申请</button>
-                    </a>
-                    {% else %}
-                    该点位暂不能申请
-                    {% endif %}
-            </td>
-
-            <!--隐藏信息， 可供搜索栏查询的信息-->
-            <td style="display: none" id="device_information{{ forloop.counter }}">{{ device.information }}</td>
-            <td style="display: none" id="device_admin{{ forloop.counter }}">{{ device.admin }}</td>
-            <td style="display: none" id="device_user{{ forloop.counter }}">{{ device.user }}</td>
-        </tr>
-        <!--隐藏信息， 不可供搜索栏查询的信息-->
-        <input type="hiddne" id="device_pk{{ forloop.counter }}" value="" name="{{ device.id }}" disabled style="display:none;">
-        {% endfor %}
-  </tbody>
-</table>
 
 <!--申请提交模态框-->
 <div class="modal fade" id="submit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -177,6 +178,7 @@
                 <div>
                     <label>设备ip：</label>
                     <input type="text" class="addip form-control" style="width: 30%;display: inline;" id="addip" value="">
+                    <a href="#" id="ping-single">链接</a>    <span id="connect-information"></span>
                 </div>
                 <br>                   
                 <div>
@@ -236,6 +238,42 @@
             </form>
         </div>
         </div>
+    </div>
+</div>
+
+<!--异常设备模态框-->
+<div class="modal fade" id="abnormal-location" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:1000px">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="myModalLabel">异常点位</h4>
+        </div>
+        <div class="modal-body">
+                <div class="loading" id="abnormal-location-loading">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                </div>
+                <table id="abnormal-location-main-table" style="display:none" class="table table-striped display table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="text-center">IP</th>
+                            <th class="text-center">位置</th>
+                            <th class="text-center">状态</th>
+                            <th class="text-center">异常原因</th>
+                        </tr>
+                    </thead>
+                    <tbody id="abnormal-location-main">
+                    </tbody>
+                </table>                
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        </div>
+      </div>
     </div>
 </div>
 

@@ -26,14 +26,56 @@ $(function(){
         })
     })
 
-    // 点击申请之后初始化模态框
+    function filter_abnormal_location(){
+        $("#abnormal-location-loading").css("display", "inline-block");
+        $('#abnormal-location-main-table').css("display", "none");
+        $('#abnormal-location-main').html("");
+        var table = $('#table_id_index').DataTable();
+        var locations = table.cells('.location').nodes();
+        var ips = table.cells('.ip').nodes();
+        var statues = table.cells('.status').nodes();
+        var num = 0
+        for (var i=0;i<locations.length;i++){
+            if ($(ips[i].children[1]).css("background-color").replace(/^\s*|\s*$/g,"") == "rgb(0, 255, 0)" && $(statues[i]).text().replace(/^\s*|\s*$/g,"") == "未使用"){
+                $("#abnormal-location-main").append(
+                    "<tr><td class='text-center' width='20%'>" + $(ips[i]).html() + "</td> \
+                    <td class='text-center' width='30%'>" + $(locations[i]).text()+"</td> \
+                    <td class='text-center' width='10%'>" + $(statues[i]).text()+"</td> \
+                    <td class='text-center' width='40%'>" + "该点位无人使用但IP被占用"+"</td> \
+                    </tr>");
+                num = num + 1;
+            } else if ($(ips[i].children[1]).css("background-color").replace(/^\s*|\s*$/g,"") == "rgb(255, 0, 0)" &&  $(statues[i]).text().replace(/^\s*|\s*$/g,"")  == "使用中"){
+                $("#abnormal-location-main").append(
+                    "<tr><td class='text-center' width='20%'>" + $(ips[i]).html() + "</td> \
+                    <td class='text-center' width='30%'>" + $(locations[i]).text()+"</td> \
+                    <td class='text-center' width='10%'>" + $(statues[i]).text()+"</td> \
+                    <td class='text-center' width='40%'>" + "该使用中的点位IP已断开"+"</td> \
+                    </tr>");
+                num = num + 1;
+            }
+        }
+        $('#abnormal-location-main-table').removeAttr("style");
+        $("#abnormal-location-loading").css("display", "none");
+        $("#abnormal-location-number").css("display", "inline");
+        $("#abnormal-location-number").text(num);
+        console.log("complete");    
+    }
+    
+    // 点击异常点位筛选
+    $("body").on('click', '#open-abnormal-location', filter_abnormal_location);
+
+    // 点击申请之后初始化申请模态框
     $("body").on('click', '.submit-btn', function() {
         var id = $(this).attr('data-id');
         var ip_id = "#ip" + id;
+        $("#connect-information").text("");
+        $("#connect-information").removeAttr("class");
         if ($(ip_id).text() == '该点位IP暂为空') {
+            $("#ping-single").css("display","inline-block");
             $("#addip").val("");
             $("#addip").removeAttr('disabled');
         }else{
+            $("#ping-single").css("display","none");
             $("#addip").val($(ip_id).text());
             $("#addip").attr('disabled', 'disabled');
         }
@@ -41,6 +83,36 @@ $(function(){
         // 清除申请模态框里的信息
         $("#information").val("");
         $("#expiration").val("");
+    })
+
+    // 判断申请框中的IP的连接状态
+    $("body").on("click", "#ping-single", function(){
+        $.ajax({
+            url: "/Stable/ping/",
+                type:"POST",
+                data:{
+                    "ip":$("#addip").val(),
+                    "csrfmiddlewaretoken":$('[name="csrfmiddlewaretoken"]').val()
+                },
+                success:function(data){
+                    var data = JSON.parse(data);
+                    if (!data["error"]){
+                        if(data["ping"]){
+                            $("#connect-information").css("color", "red");
+                            $("#connect-information").removeAttr("class");
+                            $("#connect-information").text("该IP已被人使用");
+                        }else{
+                            $("#connect-information").attr("class", "glyphicon glyphicon-ok");
+                            $("#connect-information").text("");
+                            $("#connect-information").css("color", "green");
+                        }
+                    }else if(data["error"] == 3){
+                        $("#connect-information").css("color", "red");
+                        $("#connect-information").removeAttr("class");
+                        $("#connect-information").text("此IP不为有效IP");
+                    }
+                }
+        })
     })
 
     // 初始化使用信息模态框
@@ -384,6 +456,7 @@ $(function(){
         })
     }
     ping();
+    filter_abnormal_location();
     setInterval(ping, 1000*60*10);
 
 })
