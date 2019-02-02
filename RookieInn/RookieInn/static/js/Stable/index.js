@@ -36,6 +36,10 @@ $(function(){
         var statues = table.cells('.status').nodes();
         var num = 0
         for (var i=0;i<locations.length;i++){
+            // 把没填IP的点位筛选掉
+            if (ips[i].children.length == 1){
+                continue;
+            }
             if ($(ips[i].children[1]).css("background-color").replace(/^\s*|\s*$/g,"") == "rgb(0, 255, 0)" && $(statues[i]).text().replace(/^\s*|\s*$/g,"") == "未使用"){
                 $("#abnormal-location-main").append(
                     "<tr><td class='text-center' width='20%'>" + $(ips[i]).html() + "</td> \
@@ -44,7 +48,7 @@ $(function(){
                     <td class='text-center' width='40%'>" + "该点位无人使用但IP被占用"+"</td> \
                     </tr>");
                 num = num + 1;
-            } else if ($(ips[i].children[1]).css("background-color").replace(/^\s*|\s*$/g,"") == "rgb(255, 0, 0)" &&  $(statues[i]).text().replace(/^\s*|\s*$/g,"")  == "使用中"){
+            } else if (($(ips[i].children[1]).css("background-color").replace(/^\s*|\s*$/g,"") == "rgb(255, 0, 0)" || $(ips[i].children[1]).css("background-color").replace(/^\s*|\s*$/g,"") == "red") && $(statues[i]).text().replace(/^\s*|\s*$/g,"")  == "使用中"){
                 $("#abnormal-location-main").append(
                     "<tr><td class='text-center' width='20%'>" + $(ips[i]).html() + "</td> \
                     <td class='text-center' width='30%'>" + $(locations[i]).text()+"</td> \
@@ -442,6 +446,7 @@ $(function(){
             url : "/Stable/ping/",
             type :"GET",
             dataTyoe: "json",
+            cache: false,
             success : function(data){
                 var data = JSON.parse(data);
                 var table = $('#table_id_index').DataTable();
@@ -452,11 +457,11 @@ $(function(){
                     }
                 }
                 $('.close').click();
+                filter_abnormal_location();
             },
         })
     }
     ping();
-    filter_abnormal_location();
     setInterval(ping, 1000*60*10);
 
 })

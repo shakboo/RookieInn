@@ -12,8 +12,10 @@ from django.conf import settings
 
 logger = logging.getLogger('stable')
 platform = sys.platform
+
 # Create your views here.
 
+# ping IP
 def ping_single(ip):
     ip_list= ip.split('.')
     if len(ip_list) != 4:
@@ -23,15 +25,18 @@ def ping_single(ip):
             pass
         else:
             return "error"
-    # Linux 下
-    global platform
-    if str(platform) != "win32":
-        backinfo = os.system('ping -c 1 -w 1 {0}'.format(ip))
-
     # windows 下
-    else:
+    global platform
+    if str(platform) == "win32":
         backinfo = os.system('ping -n 1 -w 1 {0}'.format(ip))
+    
+    # Mac下
+    elif str(platform) == "darwin":
+        backinfo = os.system('ping -c 1 -W 1 {0}'.format(ip))
 
+    # linux 下
+    elif str(platform) == "linux2":
+        backinfo = os.system('ping -c 1 -w 1 {0}'.format(ip))
     return backinfo
 
 # 主页
@@ -172,7 +177,7 @@ def ping(request):
             if not ip:
                 continue
             backinfo = ping_single(ip)
-            if backinfo :
+            if backinfo:
                 ret[ip] = 0
             else:
                 ret[ip] = 1
