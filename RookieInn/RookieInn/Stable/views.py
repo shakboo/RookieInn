@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.shortcuts import reverse, render, HttpResponseRedirect, get_object_or_404,HttpResponse
 import json
+import threading
 import os, sys
 from .models import Device, Log, Abnormal
 import logging
@@ -16,7 +17,7 @@ platform = sys.platform
 # Create your views here.
 
 # ping IP
-def ping_single(ip):
+def ping_single(ip, dic={}):
     ip_list= ip.split('.')
     if len(ip_list) != 4:
         return "error"
@@ -37,7 +38,15 @@ def ping_single(ip):
     # linux 下
     elif str(platform) == "linux2":
         backinfo = os.system('ping -c 1 -w 1 {0}'.format(ip))
-    return backinfo
+    
+    if not dic:
+        return backinfo
+    else:
+        if backinfo:
+            dic[ip] = 0
+        else:
+            dic[ip] = 1
+        
 
 # 主页
 def index(request):
@@ -170,17 +179,34 @@ def log(request):
 # 后台ping设备
 def ping(request):
     ret =  {'error':''}
+    # 批量ping所有设备
+    # 单线程
+    
     if request.is_ajax() and request.method == "GET":
         devices = Device.objects.all()
-        all_ip  =  [device.ip for device in devices]
+        all_ip  =  [device.ip for device in devices if device.ip]
         for ip in all_ip:
-            if not ip:
-                continue
             backinfo = ping_single(ip)
             if backinfo:
                 ret[ip] = 0
             else:
                 ret[ip] = 1
+    
+    # 多线程，坑爹的GIL
+    '''
+    if request.is_ajax() and request.method == "GET":
+        devices = Device.objects.all()
+        all_ip  =  [device.ip for device in devices if device.ip]
+        threads = []
+        while all_ip:
+            t = threading.Thread(target=ping_single, args=(all_ip.pop(), ret))
+            threads.append(t)
+            t.start()
+        for thread in threads:
+            thread.join()
+    '''
+
+    # ping单个设备
     if request.is_ajax() and request.method == "POST":
         ip = request.POST.get('ip')
         backinfo = ping_single(ip)
