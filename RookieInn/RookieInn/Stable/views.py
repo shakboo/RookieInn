@@ -17,7 +17,7 @@ platform = sys.platform
 # Create your views here.
 
 # ping IP
-def ping_single(ip, dic={}):
+def ping_single(ip, process=False, dic={}, single=False):
     ip_list= ip.split('.')
     if len(ip_list) != 4:
         return "error"
@@ -39,13 +39,17 @@ def ping_single(ip, dic={}):
     elif str(platform) == "linux2":
         backinfo = os.system('ping -c 1 -w 1 {0}'.format(ip))
     
-    if not dic:
-        return backinfo
-    else:
+
+    if process:
         if backinfo:
             dic[ip] = 0
         else:
             dic[ip] = 1
+
+    else:
+        return backinfo
+    
+    
         
 
 # 主页
@@ -181,7 +185,7 @@ def ping(request):
     ret =  {'error':''}
     # 批量ping所有设备
     # 单线程
-    
+    '''
     if request.is_ajax() and request.method == "GET":
         devices = Device.objects.all()
         all_ip  =  [device.ip for device in devices if device.ip]
@@ -191,7 +195,7 @@ def ping(request):
                 ret[ip] = 0
             else:
                 ret[ip] = 1
-    
+    '''
     # 多线程，坑爹的GIL
     '''
     if request.is_ajax() and request.method == "GET":
@@ -199,12 +203,26 @@ def ping(request):
         all_ip  =  [device.ip for device in devices if device.ip]
         threads = []
         while all_ip:
-            t = threading.Thread(target=ping_single, args=(all_ip.pop(), ret))
+            t = threading.Thread(target=ping_single, args=(all_ip.pop(), True, ret))
             threads.append(t)
             t.start()
         for thread in threads:
             thread.join()
     '''
+    # 多进程
+    if request.is_ajax() and request.method == "GET":
+        devices = Device.objects.all()
+        all_ip  =  [device.ip for device in devices if device.ip]
+        from multiprocessing import Process, Manager
+        dic = Manager().dict()
+        process = []
+        for i in range(len(all_ip)):
+            p = Process(target=ping_single, args=(all_ip.pop(), True, dic))
+            p.start()
+            process.append(p)
+        for p in process:
+            p.join()
+        ret.update(dic)
 
     # ping单个设备
     if request.is_ajax() and request.method == "POST":
