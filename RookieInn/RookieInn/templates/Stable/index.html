@@ -41,16 +41,17 @@
                         <option value="2">B3楼顶群乐方向</option>
                     </select>
                 </div>
-                <a class="btn btn-warning" role="button" href="{% url 'Stable:log' %}">查看日志</a>
+                <a class="btn btn-warning" role="button" href="{% url 'Stable:log' %}" target="_blank">查看日志</a>
                 <div class="btn-group">
                     <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         异常处理 <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">
                         <li><a href="#" data-toggle="modal" data-target="#abnormal-location" id="open-abnormal-location">异常点位 <span class="badge" id="abnormal-location-number" style="background-color: red;display: none;"></span></a></li>
+                        <li><a href="#" data-toggle="modal" data-target="#expire-location" id="open-expire-location">过期点位 <span class="badge" id="expire-location-number" style="background-color: red;display: none;"></span></a></li>
                         <li role="separator" class="divider"></li>
                         <li><a href="#" data-toggle="modal" data-target="#abnormal">异常提交</a></li>
-                        <li><a href="{% url 'Stable:abnormal' %}">处理进度</a></li>
+                        <li><a href="{% url 'Stable:abnormal' %}" target="_blank">处理进度</a></li>
                     </ul>
                 </div>
             </form>
@@ -129,7 +130,7 @@
                         {% endif %}
             
                         <!--详细信息列-->
-                        <td class="text-center" width="15%" id="user_information{{ forloop.counter }}">
+                        <td class="text-center user" width="15%" id="user_information{{ forloop.counter }}">
                             {% if device.status == '未使用' %}
                                 无
                             {% else %}
@@ -262,11 +263,50 @@
                         <tr>
                             <th class="text-center">IP</th>
                             <th class="text-center">位置</th>
+                            <th class="text-center">用户</th>
                             <th class="text-center">状态</th>
                             <th class="text-center">异常原因</th>
                         </tr>
                     </thead>
                     <tbody id="abnormal-location-main">
+                    </tbody>
+                </table>                
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!--过期设备模态框-->
+<div class="modal fade" id="expire-location" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:1000px">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="myModalLabel">过期点位</h4>
+        </div>
+        <div class="modal-body">
+                <div class="loading" id="expire-location-loading">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                </div>
+                <table id="expire-location-main-table" style="display:none" class="table table-striped display table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="text-center">IP</th>
+                            <th class="text-center">位置</th>
+                            <th class="text-center">用户</th>
+                            <th class="text-center">过期时间</th>
+                            <th class="text-center">超期天数</th>
+                            <th class="text-center">申请延期（暂未开放）</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expire-location-main">
                     </tbody>
                 </table>                
         </div>
@@ -319,7 +359,7 @@ $('.expiration').datetimepicker({
     autoclose : true,   //选择日期后自动关闭日期选择框
     todayHighlight : false,   //当天高亮显示
     startDate: new Date((new Date()).getTime() + 24*60*60*1000),
-    endDate: new Date((new Date()).getTime() + 24*60*60*1000*365)
+    endDate: new Date((new Date()).getTime() + 24*60*60*1000*90)
 });
 
 

@@ -34,6 +34,7 @@ $(function(){
         var locations = table.cells('.location').nodes();
         var ips = table.cells('.ip').nodes();
         var statues = table.cells('.status').nodes();
+        var users = table.cells('.user').nodes();
         var num = 0
         for (var i=0;i<locations.length;i++){
             // 把没填IP的点位筛选掉
@@ -44,6 +45,7 @@ $(function(){
                 $("#abnormal-location-main").append(
                     "<tr><td class='text-center' width='20%'>" + $(ips[i]).html() + "</td> \
                     <td class='text-center' width='30%'>" + $(locations[i]).text()+"</td> \
+                    <td class='text-center' width='10%'>" + $(users[i]).text()+"</td> \
                     <td class='text-center' width='10%'>" + $(statues[i]).text()+"</td> \
                     <td class='text-center' width='40%'>" + "该点位无人使用但IP被占用"+"</td> \
                     </tr>");
@@ -52,8 +54,9 @@ $(function(){
                 $("#abnormal-location-main").append(
                     "<tr><td class='text-center' width='20%'>" + $(ips[i]).html() + "</td> \
                     <td class='text-center' width='30%'>" + $(locations[i]).text()+"</td> \
+                    <td class='text-center' width='10%'>" + $(users[i]).text()+"</td> \
                     <td class='text-center' width='10%'>" + $(statues[i]).text()+"</td> \
-                    <td class='text-center' width='40%'>" + "该使用中的点位IP已断开"+"</td> \
+                    <td class='text-center' width='30%'>" + "该使用中的点位IP已断开"+"</td> \
                     </tr>");
                 num = num + 1;
             }
@@ -62,11 +65,47 @@ $(function(){
         $("#abnormal-location-loading").css("display", "none");
         $("#abnormal-location-number").css("display", "inline");
         $("#abnormal-location-number").text(num);
-        console.log("complete");    
     }
     
+    function filter_expire_location(){
+        $("#expire-location-loading").css("display", "inline-block");
+        $('#expire-location-main-table').css("display", "none");
+        $('#expire-location-main').html("");
+        var table = $('#table_id_index').DataTable();
+        var locations = table.cells('.location').nodes();
+        var ips = table.cells('.ip').nodes();
+        var expires = table.cells('.timed').nodes();
+        var users = table.cells('.user').nodes();
+        var num = 0
+        var dateNow = new Date();
+        for (var i=0;i<locations.length;i++){
+            // 把没填IP的点位筛选掉
+            if ($(expires[i]).text().replace(/^\s*|\s*$/g,"") == "暂无"){
+                continue;
+            }
+            timestamp = new Date(expires[i].innerHTML).getTime();
+            if (dateNow > timestamp + 1000 * 60 * 60 * 24){
+                $("#expire-location-main").append(
+                    "<tr><td class='text-center' width='15%'>" + $(ips[i]).html() + "</td> \
+                    <td class='text-center' width='25%'>" + $(locations[i]).text()+"</td> \
+                    <td class='text-center' width='10%'>" + $(users[i]).text()+"</td> \
+                    <td class='text-center' width='20%'>" + $(expires[i]).text()+"</td> \
+                    <td class='text-center' width='20%'>" + (parseInt((dateNow.getTime() - timestamp)/(1000 * 60 * 60 * 24))) +"</td> \
+                    <td class='text-center' width='10%'>" +  '<button class="btn btn-info" class="">申请</button>'+ "</td> \
+                    </tr>");
+                num = num + 1;
+            } 
+        }
+        $('#expire-location-main-table').removeAttr("style");
+        $("#expire-location-loading").css("display", "none");
+        $("#expire-location-number").css("display", "inline");
+        $("#expire-location-number").text(num);
+    }
+
     // 点击异常点位筛选
     $("body").on('click', '#open-abnormal-location', filter_abnormal_location);
+    // 过期点位筛选
+    $("body").on('click', '#open-expire-location', filter_expire_location);
 
     // 点击申请之后初始化申请模态框
     $("body").on('click', '.submit-btn', function() {
@@ -429,7 +468,7 @@ $(function(){
                 continue;
             } else {
                 timestamp = new Date(timed[i].innerHTML).getTime();
-                if (dateNow > timestamp){
+                if (dateNow > timestamp + 1000 * 60 * 60 * 24){
                     timed[i].style.color = 'red';
                 } else if (dateNow > (timestamp - 1000 * 60 * 60 * 24 * 7) && dateNow <= timestamp) {
                     timed[i].style.color = 'DarkGoldenRod';
@@ -458,6 +497,7 @@ $(function(){
                 }
                 $('.close').click();
                 filter_abnormal_location();
+                filter_expire_location();
             },
         })
     }

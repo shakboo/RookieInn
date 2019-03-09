@@ -44,8 +44,8 @@ class Log(models.Model):
 class Abnormal(models.Model):
     date = models.DateTimeField(u'日期', auto_now_add=True)
     handler = models.CharField(u'提交者', max_length=20)
-    content = models.CharField(u'异常描述', max_length=200)
-    solution = models.CharField(u'解决方案', max_length=200)
+    content = models.TextField(u'异常描述', max_length=1000)
+    solution = models.TextField(u'解决方案', max_length=200)
 
     CHOOSE_BOX = (
         (u'待解决', u'待解决'),

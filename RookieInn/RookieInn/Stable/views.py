@@ -147,10 +147,6 @@ def delete(request):
         device = get_object_or_404(Device, pk=pk)
         if request.user.nickname == device.user or request.user.isAdminStable:
 
-            if request.user.nickname != device.user:
-                ret['error'] = 2
-                return HttpResponse(json.dumps(ret))
-
             # 批准者和点位申请者是同一人，需要局部刷新该用户下拉框的设备数量
             if device.user == request.user.nickname:
                 ret['isChangeDevicesNum'] = 1
@@ -164,6 +160,9 @@ def delete(request):
             Log.objects.create(handler=request.user.nickname, content=info)
         elif not device.user:
             ret['error'] = 1
+            return HttpResponse(json.dumps(ret))
+        elif request.user.nickname != device.user:
+            ret['error'] = 2
             return HttpResponse(json.dumps(ret))
 
         ret['isAdmin'] = request.user.isAdminStable
@@ -197,7 +196,7 @@ def ping(request):
                 ret[ip] = 1
     '''
     # 多线程，坑爹的GIL
-    '''
+    
     if request.is_ajax() and request.method == "GET":
         devices = Device.objects.all()
         all_ip  =  [device.ip for device in devices if device.ip]
@@ -208,8 +207,9 @@ def ping(request):
             t.start()
         for thread in threads:
             thread.join()
-    '''
+    
     # 多进程
+    '''
     if request.is_ajax() and request.method == "GET":
         devices = Device.objects.all()
         all_ip  =  [device.ip for device in devices if device.ip]
@@ -223,6 +223,7 @@ def ping(request):
         for p in process:
             p.join()
         ret.update(dic)
+    '''
 
     # ping单个设备
     if request.is_ajax() and request.method == "POST":
