@@ -8,11 +8,11 @@ from django.utils import timezone
 
 # 稳定性点位信息
 class Device(models.Model):
-    ip = models.CharField(u'IP', max_length=20, blank=True)
+    ip = models.CharField(u'IP', max_length=20, blank=True, null=True)
     location = models.CharField(u'位置', max_length=50, unique=True)
-    admin = models.CharField(u'管理员', max_length=20, blank=True)
-    user = models.CharField(u'使用者', max_length=20, blank=True)
-    information = models.TextField(u'设备信息', max_length=100, blank=True)
+    admin = models.CharField(u'管理员', max_length=20, blank=True, null=True)
+    user = models.CharField(u'使用者', max_length=20, blank=True, null=True)
+    information = models.TextField(u'设备信息', max_length=100, blank=True, null=True)
     expiration = models.DateField(u'过期时间', blank=True, null=True)
 
     CHOOSE_BOX = (

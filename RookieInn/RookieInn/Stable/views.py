@@ -16,9 +16,22 @@ platform = sys.platform
 
 # Create your views here.
 
+# 删除点位信息用，devices为可迭代对象
+def deleteInfo(devices):
+    for device in devices:
+        device.information = None
+        device.ip = None
+        device.admin = None
+        device.user = None
+        device.expiration = None
+        device.status = u'未使用'
+        device.save()
+    return
+
 # ping IP
 def ping_single(ip, process=False, dic={}, single=False):
     ip_list= ip.split('.')
+    print ip_list
     if len(ip_list) != 4:
         return "error"
     for i in ip_list:
@@ -195,8 +208,8 @@ def ping(request):
             else:
                 ret[ip] = 1
     '''
-    # 多线程，坑爹的GIL
-    
+    # 多线程，windows和Linux下效果比较显著
+    '''
     if request.is_ajax() and request.method == "GET":
         devices = Device.objects.all()
         all_ip  =  [device.ip for device in devices if device.ip]
@@ -207,9 +220,9 @@ def ping(request):
             t.start()
         for thread in threads:
             thread.join()
-    
-    # 多进程
     '''
+    # 多进程，MAC下效果比较好
+    
     if request.is_ajax() and request.method == "GET":
         devices = Device.objects.all()
         all_ip  =  [device.ip for device in devices if device.ip]
@@ -223,15 +236,15 @@ def ping(request):
         for p in process:
             p.join()
         ret.update(dic)
-    '''
+    
 
     # ping单个设备
     if request.is_ajax() and request.method == "POST":
         ip = request.POST.get('ip')
         backinfo = ping_single(ip)
-        if str(backinfo) == "512" or str(backinfo) == "error":
+        print backinfo
+        if str(backinfo) == "error":
             ret['error'] = 3
-            return HttpResponse(json.dumps(ret))
         if backinfo and not len(Device.objects.filter(ip=ip)):
             ret['ping'] = 0
         else:
