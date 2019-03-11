@@ -91,7 +91,7 @@ def submit(request):
             return HttpResponse(json.dumps(ret))
 
         backinfo = ping_single(addip)
-        if str(backinfo) == "error":
+        if str(backinfo) == "error" or (str(backinfo)=="512" and str(platform)=="linux2") or (str(backinfo)=="17408" and str(platform)=="darwin"):
             ret['error'] = 3
             return HttpResponse(json.dumps(ret))
         if backinfo :
@@ -241,8 +241,8 @@ def ping(request):
     if request.is_ajax() and request.method == "POST":
         ip = request.POST.get('ip')
         backinfo = ping_single(ip)
-        print backinfo
-        if str(backinfo) == "error":
+        global platform
+        if str(backinfo) == "error" or (str(backinfo)=="512" and str(platform)=="linux2") or (str(backinfo)=="17408" and str(platform)=="darwin"):
             ret['error'] = 3
         if backinfo and not len(Device.objects.filter(ip=ip)):
             ret['ping'] = 0
