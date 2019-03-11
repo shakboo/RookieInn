@@ -31,7 +31,6 @@ def deleteInfo(devices):
 # ping IP
 def ping_single(ip, process=False, dic={}, single=False):
     ip_list= ip.split('.')
-    print ip_list
     if len(ip_list) != 4:
         return "error"
     for i in ip_list:
@@ -92,7 +91,7 @@ def submit(request):
             return HttpResponse(json.dumps(ret))
 
         backinfo = ping_single(addip)
-        if str(backinfo) == "512" or str(backinfo) == "error":
+        if str(backinfo) == "error":
             ret['error'] = 3
             return HttpResponse(json.dumps(ret))
         if backinfo :
