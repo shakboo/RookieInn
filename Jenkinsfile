@@ -1,14 +1,9 @@
 pipeline {
   agent any
   stages {
-    stage('sleep') {
+    stage('nom') {
       steps {
-        sleep 5
-      }
-    }
-    stage('interactive') {
-      steps {
-        input(message: 'Sure to do?', ok: 'OK')
+        nodejs '10.14.2'
       }
     }
   }
