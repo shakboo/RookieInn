@@ -14,7 +14,7 @@ import base64
 import socket
 
 
-# 获取本机电脑名
+# 获取本机电脑名呀
 name = socket.getfqdn(socket.gethostname())
 # 获取本机IP
 addr = socket.gethostbyname(name)
