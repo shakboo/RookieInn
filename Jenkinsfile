@@ -8,7 +8,7 @@ pipeline {
     }
     stage('interactive') {
       steps {
-        input(message: 'Sure to do?', id: '1', ok: '2', submitter: '3', submitterParameter: '4')
+        input(message: 'Sure to do?', ok: 'OK')
       }
     }
   }
